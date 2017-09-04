@@ -4,10 +4,15 @@
 // Do this version number update as the very last commit for the new release version.
 #define PROGRAM_VERSION_MAJOR       2
 #define PROGRAM_VERSION_MINOR        6
+<<<<<<< HEAD
 #define PROGRAM_VERSION_MAINTENANCE  0
 #define PROGRAM_VERSION_STRING "2.6.0rp - ROPi 4.0"
+=======
+#define PROGRAM_VERSION_MAINTENANCE  2
+#define PROGRAM_VERSION_STRING "2.6.2rp"
+>>>>>>> a7e32119966bc81493a773f7c3e59db76df83ade
 
 #define PROGRAM_BUILT_STRING __DATE__ " - " __TIME__
 
-#define RESOURCE_VERSION_STRING "2,6,0\0"
+#define RESOURCE_VERSION_STRING "2,6,2\0"
 #define RESOURCE_VERSION PROGRAM_VERSION_MAJOR,PROGRAM_VERSION_MINOR,PROGRAM_VERSION_MAINTENANCE
