@@ -25,6 +25,8 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 {
 	// MAIN MENU
 
+	// DESKTOP
+	// OPENELEC
 	// SCRAPER >
 	// SOUND SETTINGS >
 	// UI SETTINGS >
@@ -32,6 +34,27 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 	// QUIT >
 
 	// [version]
+
+	addEntry("DESKTOP", 0x777777FF, true,
+		[this] {
+			Window* window = mWindow;
+			window->pushGui(new GuiMsgBox(window, "ARE YOU SURE YOU WANT TO LAUNCH DESKTOP?", "YES",
+				[window] {
+						system("killall emulationstation && startx");					
+				}, "NO", nullptr)
+			);
+	});
+
+	addEntry("OPENELEC", 0x777777FF, true,
+		[this] {
+			Window* window = mWindow;
+			window->pushGui(new GuiMsgBox(window, "ARE YOU SURE YOU WANT TO LAUNCH OPENELEC?", "YES",
+				[window] {
+						system("sudo mkimage -C none -A arm -T script -d /boot/boot.kodi.cmd /boot/boot.scr && sudo reboot");					
+				}, "NO", nullptr)
+			);
+	});
+
 
 	auto openScrapeNow = [this] { mWindow->pushGui(new GuiScraperStart(mWindow)); };
 	addEntry("SCRAPER", 0x777777FF, true,
@@ -73,11 +96,6 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 			auto s = new GuiSettings(mWindow, "SOUND SETTINGS");
 
 			// volume
-			auto volume = std::make_shared<SliderComponent>(mWindow, 0.f, 100.f, 1.f, "%");
-			volume->setValue((float)VolumeControl::getInstance()->getVolume());
-			s->addWithLabel("SYSTEM VOLUME", volume);
-			s->addSaveFunc([volume] { VolumeControl::getInstance()->setVolume((int)round(volume->getValue())); });
-
 			#ifdef _RPI_
 				// volume control device
 				auto vol_dev = std::make_shared< OptionListComponent<std::string> >(mWindow, "AUDIO DEVICE", false);
