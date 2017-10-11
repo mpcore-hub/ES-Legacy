@@ -50,7 +50,9 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 			Window* window = mWindow;
 			window->pushGui(new GuiMsgBox(window, "ARE YOU SURE YOU WANT TO LAUNCH OPENELEC?", "YES",
 				[window] {
-						system("sudo mkimage -C none -A arm -T script -d /boot/boot.kodi.cmd /boot/boot.scr && sudo reboot");					
+						system("sudo mkimage -C none -A arm -T script -d /boot/boot.kodi.cmd /boot/boot.scr");					
+						if(quitES("/tmp/es-sysrestart") != 0)
+							LOG(LogWarning) << "Restart terminated with non-zero result!";
 				}, "NO", nullptr)
 			);
 	});
