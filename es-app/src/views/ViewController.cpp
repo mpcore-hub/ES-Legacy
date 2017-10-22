@@ -33,6 +33,7 @@ ViewController::ViewController(Window* window)
 	: GuiComponent(window), mCurrentView(nullptr), mCamera(Eigen::Affine3f::Identity()), mFadeOpacity(0), mLockInput(false)
 {
 	mState.viewing = NOTHING;
+	mCurUIMode = Settings::getInstance()->getString("UIMode");
 }
 
 ViewController::~ViewController()
@@ -43,10 +44,6 @@ ViewController::~ViewController()
 
 void ViewController::goToStart()
 {
-	// TODO
-	/* mState.viewing = START_SCREEN;
-	mCurrentView.reset();
-	playViewTransition(); */
 	goToSystemView(SystemData::sSystemVector.at(0));
 }
 
@@ -120,37 +117,6 @@ void ViewController::goToGameList(SystemData* system)
 		mCurrentView->onShow();
 	}
 	playViewTransition();
-}
-
-void ViewController::goToRandomGame()
-{
-	unsigned int total = 0;
-	for(auto it = SystemData::sSystemVector.begin(); it != SystemData::sSystemVector.end(); it++)
-	{
-		if ((*it)->isGameSystem())
-			total += (*it)->getDisplayedGameCount();
-	}
-
-	// get random number in range
-	int target = std::round(((double)std::rand() / (double)RAND_MAX) * total);
-
-	for (auto it = SystemData::sSystemVector.begin(); it != SystemData::sSystemVector.end(); it++)
-	{
-		if ((*it)->isGameSystem())
-		{
-			if ((target - (int)(*it)->getDisplayedGameCount()) >= 0)
-			{
-				target -= (int)(*it)->getDisplayedGameCount();
-			}
-			else
-			{
-				goToGameList(*it);
-				std::vector<FileData*> list = (*it)->getRootFolder()->getFilesRecursive(GAME, true);
-				getGameListView(*it)->setCursor(list.at(target));
-				return;
-			}
-		}
-	}
 }
 
 void ViewController::playViewTransition()
@@ -399,6 +365,9 @@ void ViewController::render(const Eigen::Affine3f& parentTrans)
 	Eigen::Vector3f viewStart = trans.inverse().translation();
 	Eigen::Vector3f viewEnd = trans.inverse() * Eigen::Vector3f((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight(), 0);
 
+	// Keep track of UI mode changes.
+	monitorUIMode();
+
 	// draw systemview
 	getSystemListView()->render(trans);
 
@@ -497,6 +466,22 @@ void ViewController::reloadAll()
 	}
 
 	updateHelpPrompts();
+}
+
+void ViewController::monitorUIMode()
+{
+	std::string uimode = Settings::getInstance()->getString("UIMode");
+	if (uimode != mCurUIMode) // UIMODE HAS CHANGED
+	{	
+		mCurUIMode = uimode;
+		reloadAll();
+		goToStart();
+	}
+}
+
+bool ViewController::isUIModeFull()
+{
+	return ((mCurUIMode == "Full") && ! Settings::getInstance()->getBool("ForceKiosk"));
 }
 
 std::vector<HelpPrompt> ViewController::getHelpPrompts()

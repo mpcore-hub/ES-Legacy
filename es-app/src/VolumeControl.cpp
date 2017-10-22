@@ -6,9 +6,9 @@
 
 #if defined(__linux__)
     #ifdef _RPI_
-        const char * VolumeControl::mixerName = "Lineout volume control";
+        const char * VolumeControl::mixerName = "PCM";
     #else
-    	const char * VolumeControl::mixerName = "Master";
+    	const char * VolumeControl::mixerName = "Lineout volume control";
     #endif
     const char * VolumeControl::mixerCard = "default";
 #endif

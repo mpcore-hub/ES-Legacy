@@ -21,6 +21,7 @@
 #include "ScraperCmdLine.h"
 #include <sstream>
 #include <boost/locale.hpp>
+#include <FreeImage.h>
 
 #ifdef WIN32
 #include <Windows.h>
@@ -85,6 +86,10 @@ bool parseArgs(int argc, char* argv[], unsigned int* width, unsigned int* height
 		{
 			int maxVRAM = atoi(argv[i + 1]);
 			Settings::getInstance()->setInt("MaxVRAM", maxVRAM);
+		}
+		else if (strcmp(argv[i], "--force-kiosk") == 0)
+		{
+			Settings::getInstance()->setBool("ForceKiosk", true);
 		}else if(strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
 		{
 #ifdef WIN32
@@ -111,6 +116,7 @@ bool parseArgs(int argc, char* argv[], unsigned int* width, unsigned int* height
 				"--windowed			not fullscreen, should be used with --resolution\n"
 				"--vsync [1/on or 0/off]		turn vsync on or off (default is on)\n"
 				"--max-vram [size]		Max VRAM to use in Mb before swapping. 0 for unlimited\n"
+				"--force-kiosk		Force the UI mode to be Kiosk\n"
 				"--help, -h			summon a sentient, angry tuba\n\n"
 				"More information available in README.md.\n";
 			return false; //exit after printing help
@@ -217,6 +223,11 @@ int main(int argc, char* argv[])
 	}
 #endif
 
+	// call this ONLY when linking with FreeImage as a static library
+#ifdef FREEIMAGE_LIB
+	FreeImage_Initialise();
+#endif
+
 	//if ~/.emulationstation doesn't exist and cannot be created, bail
 	if(!verifyHomeFolderExists())
 		return 1;
@@ -309,7 +320,7 @@ int main(int argc, char* argv[])
 	while(running)
 	{
 		SDL_Event event;
-		bool ps_standby = PowerSaver::getState() && SDL_GetTicks() - ps_time > PowerSaver::getMode();
+		bool ps_standby = PowerSaver::getState() && (int) SDL_GetTicks() - ps_time > PowerSaver::getMode();
 
 		if(ps_standby ? SDL_WaitEventTimeout(&event, PowerSaver::getTimeout()) : SDL_PollEvent(&event))
 		{
@@ -378,6 +389,11 @@ int main(int argc, char* argv[])
 
 	CollectionSystemManager::deinit();
 	SystemData::deleteSystems();
+
+	// call this ONLY when linking with FreeImage as a static library
+#ifdef FREEIMAGE_LIB
+	FreeImage_DeInitialise();
+#endif
 
 	LOG(LogInfo) << "EmulationStation cleanly shutting down.";
 

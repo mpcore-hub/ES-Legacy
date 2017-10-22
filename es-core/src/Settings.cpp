@@ -13,12 +13,13 @@ std::vector<const char*> settings_dont_save = boost::assign::list_of
 	("Debug")
 	("DebugGrid")
 	("DebugText")
-	("ShowExit")
-	("Windowed")
-	("VSync")
-	("HideConsole")
+	("ForceKiosk")
 	("IgnoreGamelist")
-	("SplashScreen");
+	("HideConsole")
+	("ShowExit")
+	("SplashScreen")
+	("VSync")
+	("Windowed");
 
 Settings::Settings()
 {
@@ -88,6 +89,14 @@ void Settings::setDefaults()
 	mBoolMap["StretchVideoOnScreenSaver"] = false;
 	mStringMap["PowerSaverMode"] = "disabled";
 
+	mIntMap["ScreenSaverSwapImageTimeout"] = 10000;
+	mBoolMap["SlideshowScreenSaverStretch"] = false;
+	mStringMap["SlideshowScreenSaverBackgroundAudioFile"] = getHomePath() + "/.emulationstation/slideshow/audio/slideshow_bg.wav";
+	mBoolMap["SlideshowScreenSaverCustomImageSource"] = false;
+	mStringMap["SlideshowScreenSaverImageDir"] = getHomePath() + "/.emulationstation/slideshow/image";
+	mStringMap["SlideshowScreenSaverImageFilter"] = ".png,.jpg";
+	mBoolMap["SlideshowScreenSaverRecurse"] = false;
+
 	// This setting only applies to raspberry pi but set it for all platforms so
 	// we don't get a warning if we encounter it on a different platform
 	mBoolMap["VideoOmxPlayer"] = false;
@@ -116,6 +125,9 @@ void Settings::setDefaults()
 		mStringMap["AudioDevice"] = "Master";
 	#endif
 
+	mStringMap["UIMode"] = "Full";
+	mStringMap["UIMode_passkey"] = "uuddlrlrba";
+	mBoolMap["ForceKiosk"] = false;
 }
 
 template <typename K, typename V>
