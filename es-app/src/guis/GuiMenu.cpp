@@ -40,7 +40,7 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 			Window* window = mWindow;
 			window->pushGui(new GuiMsgBox(window, "ARE YOU SURE YOU WANT TO LAUNCH DESKTOP?", "YES",
 				[window] {
-						system("killall emulationstation && startx");					
+						system("startx");					
 				}, "NO", nullptr)
 			);
 	});
