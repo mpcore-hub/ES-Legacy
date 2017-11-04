@@ -21,10 +21,12 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "ROPI 4.0
 	bool isFullUI = ViewController::get()->isUIModeFull();
 
         if (isFullUI) addEntry("DESKTOP", 0x777777FF, true, [this] { Window* window = mWindow;
-		window->pushGui(new GuiMsgBox(window, "ARE YOU SURE YOU WANT TO LAUNCH DESKTOP?", "YES", [window] { system("startx 2> /dev/null"); }, "NO", nullptr) ); });
+		window->pushGui(new GuiMsgBox(window, "ARE YOU SURE YOU WANT TO LAUNCH DESKTOP?", "YES", [window] 
+			{ system("startx 2> /dev/null"); }, "NO", nullptr) ); });
 
 	if (isFullUI) addEntry("OPENELEC", 0x777777FF, true, [this] { Window* window = mWindow;
-		window->pushGui(new GuiMsgBox(window, "ARE YOU SURE YOU WANT TO LAUNCH OPENELEC?", "YES", [window] { system("sudo mkimage -C none -A arm -T script -d /boot/boot.kodi.cmd /boot/boot.scr && sudo reboot");
+		window->pushGui(new GuiMsgBox(window, "ARE YOU SURE YOU WANT TO LAUNCH OPENELEC?", "YES", [window] 
+			{ system("sudo mkimage -C none -A arm -T script -d /boot/boot.kodi.cmd /boot/boot.scr && sudo reboot");
 
 	if(quitES("/tmp/es-sysrestart") != 0) LOG(LogWarning) << "Restart terminated with non-zero result!"; }, "NO", nullptr) ); });
 
@@ -424,6 +426,8 @@ void GuiMenu::openQuitMenu()
 	});
 	row.addElement(std::make_shared<TextComponent>(window, "RESTART SYSTEM", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
 	s->addRow(row);
+
+	// ROPi changes here: we didn't want kiosk mode with shutting down or quit to terminal permissions
 
 	if (ViewController::get()->isUIModeFull())
 	{
