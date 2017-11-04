@@ -1,11 +1,7 @@
 #include "resources/TextureResource.h"
-#include "Log.h"
-#include "platform.h"
-#include GLHEADER
-#include "ImageIO.h"
-#include "Renderer.h"
+
+#include "resources/TextureData.h"
 #include "Util.h"
-#include "Settings.h"
 
 TextureDataManager		TextureResource::sTextureDataManager;
 std::map< TextureResource::TextureKeyType, std::weak_ptr<TextureResource> > TextureResource::sTextureMap;
@@ -35,8 +31,8 @@ TextureResource::TextureResource(const std::string& path, bool tile, bool dynami
 			data->load();
 		}
 
-		mSize << data->width(), data->height();
-		mSourceSize << data->sourceWidth(), data->sourceHeight();
+		mSize = Vector2i(data->width(), data->height());
+		mSourceSize = Vector2f(data->sourceWidth(), data->sourceHeight());
 	}
 	else
 	{
@@ -62,8 +58,8 @@ void TextureResource::initFromPixels(const unsigned char* dataRGBA, size_t width
 	mTextureData->releaseRAM();
 	mTextureData->initFromRGBA(dataRGBA, width, height);
 	// Cache the image dimensions
-	mSize << width, height;
-	mSourceSize << mTextureData->sourceWidth(), mTextureData->sourceHeight();
+	mSize = Vector2i(width, height);
+	mSourceSize = Vector2f(mTextureData->sourceWidth(), mTextureData->sourceHeight());
 }
 
 void TextureResource::initFromMemory(const char* data, size_t length)
@@ -74,11 +70,11 @@ void TextureResource::initFromMemory(const char* data, size_t length)
 	mTextureData->releaseRAM();
 	mTextureData->initImageFromMemory((const unsigned char*)data, length);
 	// Get the size from the texture data
-	mSize << mTextureData->width(), mTextureData->height();
-	mSourceSize << mTextureData->sourceWidth(), mTextureData->sourceHeight();
+	mSize = Vector2i(mTextureData->width(), mTextureData->height());
+	mSourceSize = Vector2f(mTextureData->sourceWidth(), mTextureData->sourceHeight());
 }
 
-const Eigen::Vector2i TextureResource::getSize() const
+const Vector2i TextureResource::getSize() const
 {
 	return mSize;
 }
@@ -157,13 +153,13 @@ void TextureResource::rasterizeAt(size_t width, size_t height)
 		data = mTextureData;
 	else
 		data = sTextureDataManager.get(this);
-	mSourceSize << (float)width, (float)height;
+	mSourceSize = Vector2f((float)width, (float)height);
 	data->setSourceSize((float)width, (float)height);
 	if (mForceLoad || (mTextureData != nullptr))
 		data->load();
 }
 
-Eigen::Vector2f TextureResource::getSourceImageSize() const
+Vector2f TextureResource::getSourceImageSize() const
 {
 	return mSourceSize;
 }

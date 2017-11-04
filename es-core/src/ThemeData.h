@@ -1,24 +1,23 @@
 #pragma once
+#ifndef ES_CORE_THEME_DATA_H
+#define ES_CORE_THEME_DATA_H
 
-#include <iostream>
-#include <sstream>
-#include <memory>
-#include <map>
+#include "math/Vector2f.h"
+#include <boost/filesystem/path.hpp>
+#include <boost/variant/get.hpp>
+#include <boost/variant/variant.hpp>
+#include <pugixml/src/pugixml.hpp>
 #include <deque>
-#include <string>
-#include <boost/filesystem.hpp>
-#include <boost/variant.hpp>
-#include <boost/xpressive/xpressive.hpp>
-#include <Eigen/Dense>
-#include "pugixml/src/pugixml.hpp"
-#include "GuiComponent.h"
+#include <map>
+#include <sstream>
 
 template<typename T>
 class TextListComponent;
 
-class Sound;
+class GuiComponent;
 class ImageComponent;
 class NinePatchComponent;
+class Sound;
 class TextComponent;
 class Window;
 
@@ -91,7 +90,7 @@ public:
 		bool extra;
 		std::string type;
 
-		std::map< std::string, boost::variant<Eigen::Vector2f, std::string, unsigned int, float, bool> > properties;
+		std::map< std::string, boost::variant<Vector2f, std::string, unsigned int, float, bool> > properties;
 
 		template<typename T>
 		T get(const std::string& prop) const { return boost::get<T>(properties.at(prop)); }
@@ -153,3 +152,5 @@ private:
 
 	std::map<std::string, ThemeView> mViews;
 };
+
+#endif // ES_CORE_THEME_DATA_H

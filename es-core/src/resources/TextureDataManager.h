@@ -1,15 +1,15 @@
 #pragma once
+#ifndef ES_CORE_RESOURCES_TEXTURE_DATA_MANAGER_H
+#define ES_CORE_RESOURCES_TEXTURE_DATA_MANAGER_H
 
-#include "resources/ResourceManager.h"
-#include "platform.h"
-#include "resources/TextureData.h"
+#include <condition_variable>
+#include <list>
 #include <map>
 #include <memory>
-#include <thread>
 #include <mutex>
-#include <condition_variable>
-#include <functional>
+#include <thread>
 
+class TextureData;
 class TextureResource;
 
 class TextureLoader
@@ -84,3 +84,4 @@ private:
 	TextureLoader*																			mLoader;
 };
 
+#endif // ES_CORE_RESOURCES_TEXTURE_DATA_MANAGER_H

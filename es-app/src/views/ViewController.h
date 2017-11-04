@@ -1,11 +1,17 @@
 #pragma once
+#ifndef ES_APP_VIEWS_VIEW_CONTROLLER_H
+#define ES_APP_VIEWS_VIEW_CONTROLLER_H
 
-#include "views/gamelist/IGameListView.h"
-#include "views/SystemView.h"
+#include "FileData.h"
+#include "GuiComponent.h"
+#include "Renderer.h"
+#include <vector>
 
+class IGameListView;
 class SystemData;
+class SystemView;
 
-const std::vector<std::string> UIModes = { "Full", "Kiosk" };
+const std::vector<std::string> UIModes = { "Full", "Kiosk", "Kid" };
 
 // Used to smoothly transition the camera between multiple views (e.g. from system to system, from gamelist to gamelist).
 class ViewController : public GuiComponent
@@ -27,8 +33,9 @@ public:
 	void reloadAll(); // Reload everything with a theme.  Used when the "ThemeSet" setting changes.
 
 	void monitorUIMode();
-	bool isUIModeFull();
 	inline std::vector<std::string> getUIModes() { return UIModes; };
+	bool isUIModeFull();
+	bool isUIModeKid();
 
 	// Navigation.
 	void goToNextGameList();
@@ -41,11 +48,11 @@ public:
 
 	// Plays a nice launch effect and launches the game at the end of it.
 	// Once the game terminates, plays a return effect.
-	void launch(FileData* game, Eigen::Vector3f centerCameraOn = Eigen::Vector3f(Renderer::getScreenWidth() / 2.0f, Renderer::getScreenHeight() / 2.0f, 0));
+	void launch(FileData* game, Vector3f centerCameraOn = Vector3f(Renderer::getScreenWidth() / 2.0f, Renderer::getScreenHeight() / 2.0f, 0));
 
 	bool input(InputConfig* config, Input input) override;
 	void update(int deltaTime) override;
-	void render(const Eigen::Affine3f& parentTrans) override;
+	void render(const Transform4x4f& parentTrans) override;
 
 	enum ViewMode
 	{
@@ -95,10 +102,12 @@ private:
 	std::map< SystemData*, std::shared_ptr<IGameListView> > mGameListViews;
 	std::shared_ptr<SystemView> mSystemListView;
 	
-	Eigen::Affine3f mCamera;
+	Transform4x4f mCamera;
 	float mFadeOpacity;
 	bool mLockInput;
 
 	State mState;
 	std::string mCurUIMode;
 };
+
+#endif // ES_APP_VIEWS_VIEW_CONTROLLER_H

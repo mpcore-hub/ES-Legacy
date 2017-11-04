@@ -1,25 +1,27 @@
 #include "Settings.h"
+
 #include "Log.h"
-#include "pugixml/src/pugixml.hpp"
 #include "platform.h"
-#include <boost/filesystem.hpp>
-#include <boost/assign.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <pugixml/src/pugixml.hpp>
 
 Settings* Settings::sInstance = NULL;
 
 // these values are NOT saved to es_settings.xml
 // since they're set through command-line arguments, and not the in-program settings menu
-std::vector<const char*> settings_dont_save = boost::assign::list_of
-	("Debug")
-	("DebugGrid")
-	("DebugText")
-	("ForceKiosk")
-	("IgnoreGamelist")
-	("HideConsole")
-	("ShowExit")
-	("SplashScreen")
-	("VSync")
-	("Windowed");
+std::vector<const char*> settings_dont_save {
+	{ "Debug" },
+	{ "DebugGrid" },
+	{ "DebugText" },
+	{ "ForceKid" },
+	{ "ForceKiosk" },
+	{ "IgnoreGamelist" },
+	{ "HideConsole" },
+	{ "ShowExit" },
+	{ "SplashScreen" },
+	{ "VSync" },
+	{ "Windowed" }
+};
 
 Settings::Settings()
 {
@@ -47,14 +49,9 @@ void Settings::setDefaults()
 	mBoolMap["ShowExit"] = true;
 	mBoolMap["Windowed"] = false;
 	mBoolMap["SplashScreen"] = true;
+	mStringMap["StartupSystem"] = "";
 
-#ifdef _RPI_
-	// don't enable VSync by default on the Pi, since it already
-	// has trouble trying to render things at 60fps in certain menus
-	mBoolMap["VSync"] = false;
-#else
 	mBoolMap["VSync"] = true;
-#endif
 
 	mBoolMap["EnableSounds"] = true;
 	mBoolMap["ShowHelpPrompts"] = true;
@@ -128,6 +125,8 @@ void Settings::setDefaults()
 	mStringMap["UIMode"] = "Full";
 	mStringMap["UIMode_passkey"] = "uuddlrlrba";
 	mBoolMap["ForceKiosk"] = false;
+	mBoolMap["ForceKid"] = false;
+	mBoolMap["hideQuitMenuOnKidUI"] = false;
 }
 
 template <typename K, typename V>

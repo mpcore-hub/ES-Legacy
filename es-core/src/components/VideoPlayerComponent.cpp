@@ -1,17 +1,11 @@
 #ifdef _RPI_
 #include "components/VideoPlayerComponent.h"
-#include <boost/algorithm/string/predicate.hpp>
+
 #include "AudioManager.h"
-#include "Renderer.h"
-#include "ThemeData.h"
 #include "Settings.h"
-#include "Util.h"
-#include <signal.h>
-#include <wait.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+#include <boost/algorithm/string/predicate.hpp>
 #include <fcntl.h>
-#include <math.h>
+#include <wait.h>
 
 class VolumeControl
 {
@@ -32,7 +26,7 @@ VideoPlayerComponent::~VideoPlayerComponent()
 	stopVideo();
 }
 
-void VideoPlayerComponent::render(const Eigen::Affine3f& parentTrans)
+void VideoPlayerComponent::render(const Transform4x4f& parentTrans)
 {
 	VideoComponent::render(parentTrans);
 
@@ -43,7 +37,7 @@ void VideoPlayerComponent::render(const Eigen::Affine3f& parentTrans)
 void VideoPlayerComponent::setResize(float width, float height)
 {
 	setSize(width, height);
-	mTargetSize << width, height;
+	mTargetSize = Vector2f(width, height);
 	mTargetIsMax = false;
 	mStaticImage.setSize(width, height);
 	onSizeChanged();
@@ -52,7 +46,7 @@ void VideoPlayerComponent::setResize(float width, float height)
 void VideoPlayerComponent::setMaxSize(float width, float height)
 {
 	setSize(width, height);
-	mTargetSize << width, height;
+	mTargetSize = Vector2f(width, height);
 	mTargetIsMax = true;
 	mStaticImage.setMaxSize(width, height);
 	onSizeChanged();
@@ -191,11 +185,6 @@ void VideoPlayerComponent::stopVideo()
 		int status;
 		kill(mPlayerPid, SIGKILL);
 		waitpid(mPlayerPid, &status, WNOHANG);
-		// Restart AudioManager
-		if (boost::starts_with(Settings::getInstance()->getString("OMXAudioDev").c_str(), "alsa"))
-		{
-			AudioManager::getInstance()->init();
-		}
 		mPlayerPid = -1;
 	}
 }

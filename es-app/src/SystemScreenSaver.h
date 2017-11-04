@@ -1,10 +1,12 @@
 #pragma once
+#ifndef ES_APP_SYSTEM_SCREEN_SAVER_H
+#define ES_APP_SYSTEM_SCREEN_SAVER_H
 
 #include "Window.h"
 
-class VideoComponent;
 class ImageComponent;
 class Sound;
+class VideoComponent;
 
 // Screensaver implementation for main window
 class SystemScreenSaver : public Window::ScreenSaver
@@ -60,3 +62,5 @@ private:
 	std::shared_ptr<Sound>	mBackgroundAudio;
 	bool			mStopBackgroundAudio;
 };
+
+#endif // ES_APP_SYSTEM_SCREEN_SAVER_H

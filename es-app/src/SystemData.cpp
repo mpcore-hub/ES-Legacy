@@ -1,15 +1,18 @@
 #include "SystemData.h"
-#include "Gamelist.h"
-#include <boost/filesystem.hpp>
-#include <fstream>
-#include <stdlib.h>
-#include <SDL_joystick.h>
-#include "Renderer.h"
-#include "Log.h"
-#include "InputManager.h"
-#include <iostream>
-#include "Settings.h"
+
+#include "CollectionSystemManager.h"
+#include "FileFilterIndex.h"
 #include "FileSorts.h"
+#include "Gamelist.h"
+#include "Log.h"
+#include "platform.h"
+#include "Settings.h"
+#include "ThemeData.h"
+#include <boost/filesystem/operations.hpp>
+#include <fstream>
+#ifdef WIN32
+#include <Windows.h>
+#endif
 
 std::vector<SystemData*> SystemData::sSystemVector;
 
@@ -63,20 +66,17 @@ void SystemData::setIsGameSystemStatus()
 	mIsGameSystem = (mName != "retropie");
 }
 
-#ifndef WIN32
-// test to see if a file is hidden in *nix (dot-prefixed)
-// could be expanded to check for Windows hidden attribute
+// test to see if a file is hidden
 bool isHidden(const fs::path &filePath)
 {
+#ifdef WIN32
+	const DWORD Attributes = GetFileAttributes(filePath.generic_string().c_str());
+	return (Attributes != INVALID_FILE_ATTRIBUTES) && (Attributes & FILE_ATTRIBUTE_HIDDEN);
+#else
 	fs::path::string_type fileName = filePath.filename().string();
-	if(fileName[0] == '.')
-	{
-		return true;
-	}
-
-	return false;
-}
+	return fileName[0] == '.';
 #endif
+}
 
 void SystemData::populateFolder(FileData* folder)
 {
@@ -121,11 +121,9 @@ void SystemData::populateFolder(FileData* folder)
 		isGame = false;
 		if(std::find(mEnvData->mSearchExtensions.begin(), mEnvData->mSearchExtensions.end(), extension) != mEnvData->mSearchExtensions.end())
 		{
-#ifndef WIN32
 			// skip hidden files
 			if(!showHidden && isHidden(filePath))
 				continue;
-#endif
 
 			FileData* newGame = new FileData(GAME, filePath.generic_string(), mEnvData, this);
 			folder->addChild(newGame);
@@ -202,7 +200,6 @@ bool SystemData::loadConfig()
 	for(pugi::xml_node system = systemList.child("system"); system; system = system.next_sibling("system"))
 	{
 		std::string name, fullname, path, cmd, themeFolder;
-		PlatformIds::PlatformId platformId = PlatformIds::PLATFORM_UNKNOWN;
 
 		name = system.child("name").text().get();
 		fullname = system.child("fullname").text().get();
@@ -341,6 +338,33 @@ std::string SystemData::getConfigPath(bool forWrite)
 		return path.generic_string();
 
 	return "/etc/emulationstation/es_systems.cfg";
+}
+
+SystemData* SystemData::getNext() const
+{
+	std::vector<SystemData*>::const_iterator it = getIterator();
+
+	do {
+		it++;
+		if (it == sSystemVector.end())
+			it = sSystemVector.begin();
+	} while ((*it)->getDisplayedGameCount() == 0); 
+	// as we are starting in a valid gamelistview, this will always succeed, even if we have to come full circle.
+
+	return *it;
+}
+
+SystemData* SystemData::getPrev() const
+{
+	auto it = getRevIterator();
+	do {
+		it++;
+		if (it == sSystemVector.rend())
+			it = sSystemVector.rbegin();
+	} while ((*it)->getDisplayedGameCount() == 0);
+	// as we are starting in a valid gamelistview, this will always succeed, even if we have to come full circle.
+
+	return *it;
 }
 
 std::string SystemData::getGamelistPath(bool forWrite) const

@@ -1,12 +1,14 @@
 #include "VolumeControl.h"
-#include "Settings.h"
 
 #include "Log.h"
-
+#include "Settings.h"
+#ifdef WIN32
+#include <mmdeviceapi.h>
+#endif
 
 #if defined(__linux__)
     #ifdef _RPI_
-        const char * VolumeControl::mixerName = "PCM";
+        const char * VolumeControl::mixerName = "pcm";
     #else
     	const char * VolumeControl::mixerName = "Lineout volume control";
     #endif

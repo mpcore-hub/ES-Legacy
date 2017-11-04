@@ -1,4 +1,5 @@
 #include "Sound.h"
+
 #include "AudioManager.h"
 #include "Log.h"
 #include "Settings.h"
@@ -113,6 +114,8 @@ void Sound::play()
 
 	if(!Settings::getInstance()->getBool("EnableSounds"))
 		return;
+
+	AudioManager::getInstance();
 
 	SDL_LockAudio();
 	if (playing)

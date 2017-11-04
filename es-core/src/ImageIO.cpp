@@ -1,9 +1,8 @@
 #include "ImageIO.h"
 
-#include <memory.h>
-
 #include "Log.h"
-
+#include <FreeImage.h>
+#include <string.h>
 
 std::vector<unsigned char> ImageIO::loadFromMemoryRGBA32(const unsigned char * data, const size_t size, size_t & width, size_t & height)
 {
@@ -21,7 +20,6 @@ std::vector<unsigned char> ImageIO::loadFromMemoryRGBA32(const unsigned char * d
 			if (fiBitmap != nullptr)
 			{
 				//loaded. convert to 32bit if necessary
-				FIBITMAP * fiConverted = nullptr;
 				if (FreeImage_GetBPP(fiBitmap) != 32)
 				{
 					FIBITMAP * fiConverted = FreeImage_ConvertTo32Bits(fiBitmap);
@@ -36,7 +34,6 @@ std::vector<unsigned char> ImageIO::loadFromMemoryRGBA32(const unsigned char * d
 				{
 					width = FreeImage_GetWidth(fiBitmap);
 					height = FreeImage_GetHeight(fiBitmap);
-					unsigned int pitch = FreeImage_GetPitch(fiBitmap);
 					//loop through scanlines and add all pixel data to the return vector
 					//this is necessary, because width*height*bpp might not be == pitch
 					unsigned char * tempData = new unsigned char[width * height * 4];

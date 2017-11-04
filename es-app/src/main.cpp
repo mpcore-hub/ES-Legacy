@@ -1,31 +1,29 @@
 //EmulationStation, a graphical front-end for ROM browsing. Created by Alec "Aloshi" Lofquist.
 //http://www.aloshi.com
 
-#include <SDL.h>
-#include <iostream>
-#include <iomanip>
-#include "Renderer.h"
-#include "views/ViewController.h"
-#include "SystemData.h"
-#include <boost/filesystem.hpp>
 #include "guis/GuiDetectDevice.h"
 #include "guis/GuiMsgBox.h"
-#include "AudioManager.h"
-#include "platform.h"
-#include "Log.h"
-#include "Window.h"
-#include "SystemScreenSaver.h"
+#include "views/ViewController.h"
+#include "CollectionSystemManager.h"
 #include "EmulationStation.h"
+#include "InputManager.h"
+#include "Log.h"
+#include "platform.h"
 #include "PowerSaver.h"
-#include "Settings.h"
 #include "ScraperCmdLine.h"
-#include <sstream>
-#include <boost/locale.hpp>
-#include <FreeImage.h>
-
+#include "Settings.h"
+#include "SystemData.h"
+#include "SystemScreenSaver.h"
+#include <boost/filesystem/operations.hpp>
+#include <SDL_events.h>
+#include <SDL_main.h>
+#include <SDL_timer.h>
+#include <iostream>
 #ifdef WIN32
 #include <Windows.h>
 #endif
+
+#include <FreeImage.h>
 
 namespace fs = boost::filesystem;
 
@@ -52,11 +50,9 @@ bool parseArgs(int argc, char* argv[], unsigned int* width, unsigned int* height
 		}else if(strcmp(argv[i], "--ignore-gamelist") == 0)
 		{
 			Settings::getInstance()->setBool("IgnoreGamelist", true);
-#ifndef WIN32
 		}else if(strcmp(argv[i], "--show-hidden-files") == 0)
 		{
 			Settings::getInstance()->setBool("ShowHiddenFiles", true);
-#endif
 		}else if(strcmp(argv[i], "--draw-framerate") == 0)
 		{
 			Settings::getInstance()->setBool("DrawFramerate", true);
@@ -90,7 +86,12 @@ bool parseArgs(int argc, char* argv[], unsigned int* width, unsigned int* height
 		else if (strcmp(argv[i], "--force-kiosk") == 0)
 		{
 			Settings::getInstance()->setBool("ForceKiosk", true);
-		}else if(strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
+		}
+		else if (strcmp(argv[i], "--force-kid") == 0)
+		{
+			Settings::getInstance()->setBool("ForceKid", true);
+		}
+		else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
 		{
 #ifdef WIN32
 			// This is a bit of a hack, but otherwise output will go to nowhere
@@ -184,7 +185,7 @@ int main(int argc, char* argv[])
 	unsigned int width = 0;
 	unsigned int height = 0;
 
-	std::locale::global(boost::locale::generator().generate(""));
+	std::locale::global(std::locale(std::locale(""), "C", std::locale::numeric));
 	boost::filesystem::path::imbue(std::locale());
 
 	if(!parseArgs(argc, argv, &width, &height))
@@ -315,7 +316,6 @@ int main(int argc, char* argv[])
 	int ps_time = SDL_GetTicks();
 
 	bool running = true;
-	bool ps_standby = false;
 
 	while(running)
 	{

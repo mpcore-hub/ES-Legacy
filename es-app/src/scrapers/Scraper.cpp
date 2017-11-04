@@ -1,14 +1,18 @@
 #include "scrapers/Scraper.h"
-#include "Log.h"
-#include "Settings.h"
-#include <FreeImage.h>
-#include <boost/filesystem.hpp>
-#include <boost/assign.hpp>
 
+#include "FileData.h"
 #include "GamesDBScraper.h"
+#include "Log.h"
+#include "platform.h"
+#include "Settings.h"
+#include "SystemData.h"
+#include <boost/filesystem/operations.hpp>
+#include <FreeImage.h>
+#include <fstream>
 
-const std::map<std::string, generate_scraper_requests_func> scraper_request_funcs = boost::assign::map_list_of
-	("TheGamesDB", &thegamesdb_generate_scraper_requests);
+const std::map<std::string, generate_scraper_requests_func> scraper_request_funcs {
+	{ "TheGamesDB", &thegamesdb_generate_scraper_requests }
+};
 
 std::unique_ptr<ScraperSearchHandle> startScraperSearch(const ScraperSearchParams& params)
 {
@@ -258,7 +262,7 @@ bool resizeImage(const std::string& path, int maxWidth, int maxHeight)
 		return false;
 	}
 
-	bool saved = FreeImage_Save(format, imageRescaled, path.c_str());
+	bool saved = (FreeImage_Save(format, imageRescaled, path.c_str()) != 0);
 	FreeImage_Unload(imageRescaled);
 
 	if(!saved)

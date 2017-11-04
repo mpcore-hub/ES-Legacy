@@ -1,14 +1,16 @@
 #pragma once
+#ifndef ES_APP_SYSTEM_DATA_H
+#define ES_APP_SYSTEM_DATA_H
 
-#include <vector>
-#include <string>
-#include "FileData.h"
-#include "Window.h"
-#include "MetaData.h"
 #include "PlatformId.h"
-#include "ThemeData.h"
-#include "FileFilterIndex.h"
-#include "CollectionSystemManager.h"
+#include <algorithm>
+#include <memory>
+#include <string>
+#include <vector>
+
+class FileData;
+class FileFilterIndex;
+class ThemeData;
 
 struct SystemEnvironmentData
 {
@@ -54,22 +56,9 @@ public:
 	inline std::vector<SystemData*>::const_reverse_iterator getRevIterator() const { return std::find(sSystemVector.rbegin(), sSystemVector.rend(), this); };
 	inline bool isCollection() { return mIsCollectionSystem; };
 	inline bool isGameSystem() { return mIsGameSystem; }
-	inline SystemData* getNext() const
-	{
-		auto it = getIterator();
-		it++;
-		if(it == sSystemVector.end()) it = sSystemVector.begin();
-		return *it;
-	}
-
-	inline SystemData* getPrev() const
-	{
-		auto it = getRevIterator();
-		it++;
-		if(it == sSystemVector.rend()) it = sSystemVector.rbegin();
-		return *it;
-	}
-
+	
+	SystemData* getNext() const;
+	SystemData* getPrev() const;
 	static SystemData* getRandomSystem();
 	FileData* getRandomGame();
 
@@ -94,3 +83,5 @@ private:
 
 	FileData* mRootFolder;
 };
+
+#endif // ES_APP_SYSTEM_DATA_H

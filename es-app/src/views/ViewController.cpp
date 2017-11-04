@@ -1,19 +1,19 @@
 #include "views/ViewController.h"
-#include "Log.h"
-#include "SystemData.h"
-#include "Settings.h"
-#include "PowerSaver.h"
 
-#include "views/gamelist/BasicGameListView.h"
-#include "views/gamelist/DetailedGameListView.h"
-#include "views/gamelist/VideoGameListView.h"
-#include "views/gamelist/GridGameListView.h"
-#include "guis/GuiMenu.h"
-#include "guis/GuiMsgBox.h"
+#include "animations/Animation.h"
+#include "animations/LambdaAnimation.h"
 #include "animations/LaunchAnimation.h"
 #include "animations/MoveCameraAnimation.h"
-#include "animations/LambdaAnimation.h"
-#include <SDL.h>
+#include "guis/GuiMenu.h"
+#include "views/gamelist/DetailedGameListView.h"
+#include "views/gamelist/IGameListView.h"
+#include "views/gamelist/VideoGameListView.h"
+#include "views/SystemView.h"
+#include "FileFilterIndex.h"
+#include "Log.h"
+#include "Settings.h"
+#include "SystemData.h"
+#include "Window.h"
 
 ViewController* ViewController::sInstance = NULL;
 
@@ -30,7 +30,7 @@ void ViewController::init(Window* window)
 }
 
 ViewController::ViewController(Window* window)
-	: GuiComponent(window), mCurrentView(nullptr), mCamera(Eigen::Affine3f::Identity()), mFadeOpacity(0), mLockInput(false)
+	: GuiComponent(window), mCurrentView(nullptr), mCamera(Transform4x4f::Identity()), mFadeOpacity(0), mLockInput(false)
 {
 	mState.viewing = NOTHING;
 	mCurUIMode = Settings::getInstance()->getString("UIMode");
@@ -44,6 +44,18 @@ ViewController::~ViewController()
 
 void ViewController::goToStart()
 {
+	// If specific system is requested, go directly to the game list
+	auto requestedSystem = Settings::getInstance()->getString("StartupSystem");
+	if("" != requestedSystem && "retropie" != requestedSystem)
+	{
+		for(auto it = SystemData::sSystemVector.begin(); it != SystemData::sSystemVector.end(); it++){
+			if ((*it)->getName() == requestedSystem)
+			{
+				goToGameList(*it);
+				return;
+			}
+		}
+	}
 	goToSystemView(SystemData::sSystemVector.at(0));
 }
 
@@ -121,7 +133,7 @@ void ViewController::goToGameList(SystemData* system)
 
 void ViewController::playViewTransition()
 {
-	Eigen::Vector3f target(Eigen::Vector3f::Identity());
+	Vector3f target(Vector3f::Zero());
 	if(mCurrentView)
 		target = mCurrentView->getPosition();
 
@@ -180,7 +192,7 @@ void ViewController::onFileChanged(FileData* file, FileChangeType change)
 		it->second->onFileChanged(file, change);
 }
 
-void ViewController::launch(FileData* game, Eigen::Vector3f center)
+void ViewController::launch(FileData* game, Vector3f center)
 {
 	if(game->getType() != GAME)
 	{
@@ -192,7 +204,7 @@ void ViewController::launch(FileData* game, Eigen::Vector3f center)
 	if (mCurrentView)
 		mCurrentView->onHide();
 
-	Eigen::Affine3f origCamera = mCamera;
+	Transform4x4f origCamera = mCamera;
 	origCamera.translation() = -mCurrentView->getPosition();
 
 	center += mCurrentView->getPosition();
@@ -357,13 +369,15 @@ void ViewController::update(int deltaTime)
 	updateSelf(deltaTime);
 }
 
-void ViewController::render(const Eigen::Affine3f& parentTrans)
+void ViewController::render(const Transform4x4f& parentTrans)
 {
-	Eigen::Affine3f trans = mCamera * parentTrans;
+	Transform4x4f trans = mCamera * parentTrans;
+	Transform4x4f transInverse;
+	transInverse.invert(trans);
 
 	// camera position, position + size
-	Eigen::Vector3f viewStart = trans.inverse().translation();
-	Eigen::Vector3f viewEnd = trans.inverse() * Eigen::Vector3f((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight(), 0);
+	Vector3f viewStart = transInverse.translation();
+	Vector3f viewEnd = transInverse * Vector3f((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight(), 0);
 
 	// Keep track of UI mode changes.
 	monitorUIMode();
@@ -375,12 +389,12 @@ void ViewController::render(const Eigen::Affine3f& parentTrans)
 	for(auto it = mGameListViews.begin(); it != mGameListViews.end(); it++)
 	{
 		// clipping
-		Eigen::Vector3f guiStart = it->second->getPosition();
-		Eigen::Vector3f guiEnd = it->second->getPosition() + Eigen::Vector3f(it->second->getSize().x(), it->second->getSize().y(), 0);
+		Vector3f guiStart = it->second->getPosition();
+		Vector3f guiEnd = it->second->getPosition() + Vector3f(it->second->getSize().x(), it->second->getSize().y(), 0);
 
 		if(guiEnd.x() >= viewStart.x() && guiEnd.y() >= viewStart.y() &&
 			guiStart.x() <= viewEnd.x() && guiStart.y() <= viewEnd.y())
-				it->second->render(trans);
+			it->second->render(trans);
 	}
 
 	if(mWindow->peekGui() == this)
@@ -398,6 +412,7 @@ void ViewController::preload()
 {
 	for(auto it = SystemData::sSystemVector.begin(); it != SystemData::sSystemVector.end(); it++)
 	{
+		(*it)->getIndex()->resetFilters();
 		getGameListView(*it);
 	}
 }
@@ -435,6 +450,7 @@ void ViewController::reloadGameListView(IGameListView* view, bool reloadTheme)
 
 void ViewController::reloadAll()
 {
+	// clear all gamelistviews
 	std::map<SystemData*, FileData*> cursorMap;
 	for(auto it = mGameListViews.begin(); it != mGameListViews.end(); it++)
 	{
@@ -442,12 +458,16 @@ void ViewController::reloadAll()
 	}
 	mGameListViews.clear();
 
+
+	// load themes, create gamelistviews and reset filters
 	for(auto it = cursorMap.begin(); it != cursorMap.end(); it++)
 	{
 		it->first->loadTheme();
+		it->first->getIndex()->resetFilters();
 		getGameListView(it->first)->setCursor(it->second);
 	}
 
+	// Rebuild SystemListView
 	mSystemListView.reset();
 	getSystemListView();
 
@@ -472,7 +492,8 @@ void ViewController::monitorUIMode()
 {
 	std::string uimode = Settings::getInstance()->getString("UIMode");
 	if (uimode != mCurUIMode) // UIMODE HAS CHANGED
-	{	
+	{
+		mWindow->renderLoadingScreen();
 		mCurUIMode = uimode;
 		reloadAll();
 		goToStart();
@@ -482,6 +503,12 @@ void ViewController::monitorUIMode()
 bool ViewController::isUIModeFull()
 {
 	return ((mCurUIMode == "Full") && ! Settings::getInstance()->getBool("ForceKiosk"));
+}
+
+bool ViewController::isUIModeKid()
+{
+	return (Settings::getInstance()->getBool("ForceKid") ||
+		((mCurUIMode == "Kid") && !Settings::getInstance()->getBool("ForceKiosk")));
 }
 
 std::vector<HelpPrompt> ViewController::getHelpPrompts()

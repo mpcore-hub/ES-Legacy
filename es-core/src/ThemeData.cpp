@@ -1,142 +1,127 @@
 #include "ThemeData.h"
-#include "Renderer.h"
-#include "resources/Font.h"
-#include "Sound.h"
-#include "resources/TextureResource.h"
-#include "Log.h"
-#include "Settings.h"
-#include "pugixml/src/pugixml.hpp"
-#include <boost/assign.hpp>
-#include <boost/xpressive/xpressive.hpp>
 
 #include "components/ImageComponent.h"
 #include "components/TextComponent.h"
+#include "Log.h"
+#include "platform.h"
+#include "Settings.h"
+#include <boost/filesystem/operations.hpp>
+#include <boost/xpressive/xpressive_static.hpp>
 
+std::vector<std::string> ThemeData::sSupportedViews { { "system" }, { "basic" }, { "detailed" }, { "video" } };
+std::vector<std::string> ThemeData::sSupportedFeatures { { "video" }, { "carousel" }, { "z-index" } };
 
-// This is a work around for some ambiguity that is introduced in C++11 that boost::assign::map_list_of leave open.
-// We use makeMap(actualmap) to implicitly convert the boost::assign::map_list_of's return type to ElementMapType.
-// Problem exists with gcc 4.7 and Boost 1.51.  Works fine with MSVC2010 without this hack.
-typedef std::map<std::string, ThemeData::ElementPropertyType> ElementMapType;
-template<typename T>
-ElementMapType makeMap(const T& mapInit)
-{
-	ElementMapType m = mapInit;
-	return m;
-}
-
-std::vector<std::string> ThemeData::sSupportedViews = boost::assign::list_of("system")("basic")("detailed")("video");
-std::vector<std::string> ThemeData::sSupportedFeatures = boost::assign::list_of("video")("carousel")("z-index");
-
-std::map< std::string, ElementMapType > ThemeData::sElementMap = boost::assign::map_list_of
-	("image", makeMap(boost::assign::map_list_of
-		("pos", NORMALIZED_PAIR)
-		("size", NORMALIZED_PAIR)
-		("maxSize", NORMALIZED_PAIR)
-		("origin", NORMALIZED_PAIR)
-	 	("rotation", FLOAT)
-		("rotationOrigin", NORMALIZED_PAIR)
-		("path", PATH)
-		("default", PATH)
-		("tile", BOOLEAN)
-		("color", COLOR)
-		("zIndex", FLOAT)))
-	("text", makeMap(boost::assign::map_list_of
-		("pos", NORMALIZED_PAIR)
-		("size", NORMALIZED_PAIR)
-		("origin", NORMALIZED_PAIR)
-		("rotation", FLOAT)
-		("rotationOrigin", NORMALIZED_PAIR)
-		("text", STRING)
-		("backgroundColor", COLOR)
-		("fontPath", PATH)
-		("fontSize", FLOAT)
-		("color", COLOR)
-		("alignment", STRING)
-		("forceUppercase", BOOLEAN)
-		("lineSpacing", FLOAT)
-		("value", STRING)
-		("zIndex", FLOAT)))
-	("textlist", makeMap(boost::assign::map_list_of
-		("pos", NORMALIZED_PAIR)
-		("size", NORMALIZED_PAIR)
-		("origin", NORMALIZED_PAIR)
-		("selectorHeight", FLOAT)
-		("selectorOffsetY", FLOAT)
-		("selectorColor", COLOR)
-		("selectorImagePath", PATH)
-		("selectorImageTile", BOOLEAN)
-		("selectedColor", COLOR)
-		("primaryColor", COLOR)
-		("secondaryColor", COLOR)
-		("fontPath", PATH)
-		("fontSize", FLOAT)
-		("scrollSound", PATH)
-		("alignment", STRING)
-		("horizontalMargin", FLOAT)
-		("forceUppercase", BOOLEAN)
-		("lineSpacing", FLOAT)
-		("zIndex", FLOAT)))
-	("container", makeMap(boost::assign::map_list_of
-		("pos", NORMALIZED_PAIR)
-		("size", NORMALIZED_PAIR)
-	 	("origin", NORMALIZED_PAIR)
-		("zIndex", FLOAT)))
-	("ninepatch", makeMap(boost::assign::map_list_of
-		("pos", NORMALIZED_PAIR)
-		("size", NORMALIZED_PAIR)
-		("path", PATH)
-		("zIndex", FLOAT)))
-	("datetime", makeMap(boost::assign::map_list_of
-		("pos", NORMALIZED_PAIR)
-		("size", NORMALIZED_PAIR)
-		("color", COLOR)
-		("fontPath", PATH)
-		("fontSize", FLOAT)
-		("forceUppercase", BOOLEAN)
-		("zIndex", FLOAT)))
-	("rating", makeMap(boost::assign::map_list_of
-		("pos", NORMALIZED_PAIR)
-		("size", NORMALIZED_PAIR)
-		("origin", NORMALIZED_PAIR)
-		("rotation", FLOAT)
-		("rotationOrigin", NORMALIZED_PAIR)
-		("color", COLOR)
-		("filledPath", PATH)
-		("unfilledPath", PATH)
-		("zIndex", FLOAT)))
-	("sound", makeMap(boost::assign::map_list_of
-		("path", PATH)))
-	("helpsystem", makeMap(boost::assign::map_list_of
-		("pos", NORMALIZED_PAIR)
-		("textColor", COLOR)
-		("iconColor", COLOR)
-		("fontPath", PATH)
-		("fontSize", FLOAT)))
-	("video", makeMap(boost::assign::map_list_of
-		("pos", NORMALIZED_PAIR)
-		("size", NORMALIZED_PAIR)
-		("maxSize", NORMALIZED_PAIR)
-		("origin", NORMALIZED_PAIR)
-		("rotation", FLOAT)
-		("rotationOrigin", NORMALIZED_PAIR)
-		("default", PATH)
-		("delay", FLOAT)
-		("zIndex", FLOAT)
-		("showSnapshotNoVideo", BOOLEAN)
-		("showSnapshotDelay", BOOLEAN)))
-	("carousel", makeMap(boost::assign::map_list_of
-		("type", STRING)
-		("size", NORMALIZED_PAIR)
-		("pos", NORMALIZED_PAIR)
-		("origin", NORMALIZED_PAIR)
-		("color", COLOR)
-		("logoScale", FLOAT)
-		("logoRotation", FLOAT)
-		("logoRotationOrigin", NORMALIZED_PAIR)
-		("logoSize", NORMALIZED_PAIR)
-		("logoAlignment", STRING)
-		("maxLogoCount", FLOAT)
-		("zIndex", FLOAT)));
+std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> ThemeData::sElementMap {
+	{ "image", {
+		{ "pos", NORMALIZED_PAIR },
+		{ "size", NORMALIZED_PAIR },
+		{ "maxSize", NORMALIZED_PAIR },
+		{ "origin", NORMALIZED_PAIR },
+	 	{ "rotation", FLOAT },
+		{ "rotationOrigin", NORMALIZED_PAIR },
+		{ "path", PATH },
+		{ "default", PATH },
+		{ "tile", BOOLEAN },
+		{ "color", COLOR },
+		{ "zIndex", FLOAT } } },
+	{ "text", {
+		{ "pos", NORMALIZED_PAIR },
+		{ "size", NORMALIZED_PAIR },
+		{ "origin", NORMALIZED_PAIR },
+		{ "rotation", FLOAT },
+		{ "rotationOrigin", NORMALIZED_PAIR },
+		{ "text", STRING },
+		{ "backgroundColor", COLOR },
+		{ "fontPath", PATH },
+		{ "fontSize", FLOAT },
+		{ "color", COLOR },
+		{ "alignment", STRING },
+		{ "forceUppercase", BOOLEAN },
+		{ "lineSpacing", FLOAT },
+		{ "value", STRING },
+		{ "zIndex", FLOAT } } },
+	{ "textlist", {
+		{ "pos", NORMALIZED_PAIR },
+		{ "size", NORMALIZED_PAIR },
+		{ "origin", NORMALIZED_PAIR },
+		{ "selectorHeight", FLOAT },
+		{ "selectorOffsetY", FLOAT },
+		{ "selectorColor", COLOR },
+		{ "selectorImagePath", PATH },
+		{ "selectorImageTile", BOOLEAN },
+		{ "selectedColor", COLOR },
+		{ "primaryColor", COLOR },
+		{ "secondaryColor", COLOR },
+		{ "fontPath", PATH },
+		{ "fontSize", FLOAT },
+		{ "scrollSound", PATH },
+		{ "alignment", STRING },
+		{ "horizontalMargin", FLOAT },
+		{ "forceUppercase", BOOLEAN },
+		{ "lineSpacing", FLOAT },
+		{ "zIndex", FLOAT } } },
+	{ "container", {
+		{ "pos", NORMALIZED_PAIR },
+		{ "size", NORMALIZED_PAIR },
+	 	{ "origin", NORMALIZED_PAIR },
+		{ "zIndex", FLOAT } } },
+	{ "ninepatch", {
+		{ "pos", NORMALIZED_PAIR },
+		{ "size", NORMALIZED_PAIR },
+		{ "path", PATH },
+		{ "zIndex", FLOAT } } },
+	{ "datetime", {
+		{ "pos", NORMALIZED_PAIR },
+		{ "size", NORMALIZED_PAIR },
+		{ "color", COLOR },
+		{ "fontPath", PATH },
+		{ "fontSize", FLOAT },
+		{ "forceUppercase", BOOLEAN },
+		{ "zIndex", FLOAT } } },
+	{ "rating", {
+		{ "pos", NORMALIZED_PAIR },
+		{ "size", NORMALIZED_PAIR },
+		{ "origin", NORMALIZED_PAIR },
+		{ "rotation", FLOAT },
+		{ "rotationOrigin", NORMALIZED_PAIR },
+		{ "color", COLOR },
+		{ "filledPath", PATH },
+		{ "unfilledPath", PATH },
+		{ "zIndex", FLOAT } } },
+	{ "sound", {
+		{ "path", PATH } } },
+	{ "helpsystem", {
+		{ "pos", NORMALIZED_PAIR },
+		{ "textColor", COLOR },
+		{ "iconColor", COLOR },
+		{ "fontPath", PATH },
+		{ "fontSize", FLOAT } } },
+	{ "video", {
+		{ "pos", NORMALIZED_PAIR },
+		{ "size", NORMALIZED_PAIR },
+		{ "maxSize", NORMALIZED_PAIR },
+		{ "origin", NORMALIZED_PAIR },
+		{ "rotation", FLOAT },
+		{ "rotationOrigin", NORMALIZED_PAIR },
+		{ "default", PATH },
+		{ "delay", FLOAT },
+		{ "zIndex", FLOAT },
+		{ "showSnapshotNoVideo", BOOLEAN },
+		{ "showSnapshotDelay", BOOLEAN } } },
+	{ "carousel", {
+		{ "type", STRING },
+		{ "size", NORMALIZED_PAIR },
+		{ "pos", NORMALIZED_PAIR },
+		{ "origin", NORMALIZED_PAIR },
+		{ "color", COLOR },
+		{ "logoScale", FLOAT },
+		{ "logoRotation", FLOAT },
+		{ "logoRotationOrigin", NORMALIZED_PAIR },
+		{ "logoSize", NORMALIZED_PAIR },
+		{ "logoAlignment", STRING },
+		{ "maxLogoCount", FLOAT },
+		{ "zIndex", FLOAT } } }
+};
 
 namespace fs = boost::filesystem;
 
@@ -275,14 +260,14 @@ void ThemeData::parseIncludes(const pugi::xml_node& root)
 		if(!result)
 			throw error << "Error parsing file: \n    " << result.description();
 
-		pugi::xml_node root = includeDoc.child("theme");
-		if(!root)
+		pugi::xml_node theme = includeDoc.child("theme");
+		if(!theme)
 			throw error << "Missing <theme> tag!";
 
-		parseVariables(root);
-		parseIncludes(root);
-		parseViews(root);
-		parseFeatures(root);
+		parseVariables(theme);
+		parseIncludes(theme);
+		parseViews(theme);
+		parseFeatures(theme);
 
 		mPaths.pop_back();
 	}
@@ -419,7 +404,7 @@ void ThemeData::parseElement(const pugi::xml_node& root, const std::map<std::str
 			std::string first = str.substr(0, divider);
 			std::string second = str.substr(divider, std::string::npos);
 
-			Eigen::Vector2f val(atof(first.c_str()), atof(second.c_str()));
+			Vector2f val(atof(first.c_str()), atof(second.c_str()));
 
 			element.properties[node.name()] = val;
 			break;

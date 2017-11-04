@@ -1,16 +1,10 @@
 #include "guis/GuiSlideshowScreensaverOptions.h"
-#include "Window.h"
-#include "Settings.h"
-#include "views/ViewController.h"
 
-#include "components/SwitchComponent.h"
 #include "components/SliderComponent.h"
-#include "components/TextComponent.h"
-#include "components/OptionListComponent.h"
-#include "components/MenuComponent.h"
-#include "guis/GuiMsgBox.h"
+#include "components/SwitchComponent.h"
 #include "guis/GuiTextEditPopup.h"
-#include "PowerSaver.h"
+#include "Settings.h"
+#include "Window.h"
 
 GuiSlideshowScreensaverOptions::GuiSlideshowScreensaverOptions(Window* window, const char* title) : GuiScreensaverOptions(window, title)
 {
@@ -101,7 +95,7 @@ void GuiSlideshowScreensaverOptions::addEditableTextComponent(ComponentListRow r
 
 	auto bracket = std::make_shared<ImageComponent>(mWindow);
 	bracket->setImage(":/arrow.svg");
-	bracket->setResize(Eigen::Vector2f(0, lbl->getFont()->getLetterHeight()));
+	bracket->setResize(Vector2f(0, lbl->getFont()->getLetterHeight()));
 	row.addElement(bracket, false);
 
 	auto updateVal = [ed](const std::string& newVal) { ed->setValue(newVal); }; // ok callback (apply new value to ed)

@@ -1,12 +1,9 @@
 #pragma once
+#ifndef ES_CORE_COMPONENTS_ILIST_H
+#define ES_CORE_COMPONENTS_ILIST_H
 
-#include <string>
-#include <vector>
-#include <memory>
-#include "GuiComponent.h"
 #include "components/ImageComponent.h"
 #include "resources/Font.h"
-#include "Renderer.h"
 #include "PowerSaver.h"
 
 enum CursorState
@@ -247,7 +244,7 @@ protected:
 			scroll(mScrollVelocity);
 	}
 
-	void listRenderTitleOverlay(const Eigen::Affine3f& trans)
+	void listRenderTitleOverlay(const Transform4x4f& trans)
 	{
 		if(size() == 0 || !mTitleOverlayFont || mTitleOverlayOpacity == 0)
 			return;
@@ -255,11 +252,11 @@ protected:
 		// we don't bother caching this because it's only two letters and will change pretty much every frame if we're scrolling
 		const std::string text = getSelectedName().size() >= 2 ? getSelectedName().substr(0, 2) : "??";
 
-		Eigen::Vector2f off = mTitleOverlayFont->sizeText(text);
+		Vector2f off = mTitleOverlayFont->sizeText(text);
 		off[0] = (Renderer::getScreenWidth() - off.x()) * 0.5f;
 		off[1] = (Renderer::getScreenHeight() - off.y()) * 0.5f;
 		
-		Eigen::Affine3f identTrans = Eigen::Affine3f::Identity();
+		Transform4x4f identTrans = Transform4x4f::Identity();
 
 		mGradient.setOpacity(mTitleOverlayOpacity);
 		mGradient.render(identTrans);
@@ -311,3 +308,5 @@ protected:
 	virtual void onCursorChanged(const CursorState& state) {}
 	virtual void onScroll(int amt) {}
 };
+
+#endif // ES_CORE_COMPONENTS_ILIST_H
