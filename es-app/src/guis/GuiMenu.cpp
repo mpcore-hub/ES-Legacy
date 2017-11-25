@@ -26,7 +26,7 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "ROPI 4.0
 
 	if (isFullUI) addEntry("OPENELEC", 0x777777FF, true, [this] { Window* window = mWindow;
 		window->pushGui(new GuiMsgBox(window, "ARE YOU SURE YOU WANT TO LAUNCH OPENELEC?", "YES", [window] 
-			{ system("sudo mkimage -C none -A arm -T script -d /boot/boot.kodi.cmd /boot/boot.scr && sudo reboot");
+			{ system("sudo mkimage -C none -A arm -T script -d /boot/boot.kodi.cmd /boot/boot.scr");
 
 	if(quitES("/tmp/es-sysrestart") != 0) LOG(LogWarning) << "Restart terminated with non-zero result!"; }, "NO", nullptr) ); });
 
@@ -48,6 +48,10 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "ROPI 4.0
 
 	if (isFullUI)
 		addEntry("CONFIGURE INPUT", 0x777777FF, true, [this] { openConfigInput(); });
+
+        if (isFullUI) addEntry("SLEEP MODE", 0x777777FF, true, [this] { Window* window = mWindow;
+                window->pushGui(new GuiMsgBox(window, "REALLY SLEEP?", "YES", [window]
+                        { system("/home/pi/RetrOrangePi/Power_Button/Sleep_mode.sh 2> /dev/null"); }, "NO", nullptr) ); });
 
 	if (!(ViewController::get()->isUIModeKid() && Settings::getInstance()->getBool("hideQuitMenuOnKidUI")))
 		addEntry("QUIT", 0x777777FF, true, [this] {openQuitMenu(); });
