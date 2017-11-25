@@ -1,7 +1,7 @@
 #include "Renderer.h"
 
+#include "math/Misc.h"
 #include "Log.h"
-#include <math.h>
 #include <stack>
 
 namespace Renderer {
@@ -18,10 +18,10 @@ namespace Renderer {
 
 	void setColor4bArray(GLubyte* array, unsigned int color)
 	{
-		array[0] = (color & 0xff000000) >> 24;
-		array[1] = (color & 0x00ff0000) >> 16;
-		array[2] = (color & 0x0000ff00) >> 8;
-		array[3] = (color & 0x000000ff);
+		array[0] = ((color & 0xff000000) >> 24) & 255;
+		array[1] = ((color & 0x00ff0000) >> 16) & 255;
+		array[2] = ((color & 0x0000ff00) >>  8) & 255;
+		array[3] = ((color & 0x000000ff)      ) & 255;
 	}
 
 	void buildGLColorArray(GLubyte* ptr, unsigned int color, unsigned int vertCount)
@@ -92,7 +92,7 @@ namespace Renderer {
 
 	void drawRect(float x, float y, float w, float h, unsigned int color, GLenum blend_sfactor, GLenum blend_dfactor)
 	{
-		drawRect((int)round(x), (int)round(y), (int)round(w), (int)round(h), color, blend_sfactor, blend_dfactor);
+		drawRect((int)Math::round(x), (int)Math::round(y), (int)Math::round(w), (int)Math::round(h), color, blend_sfactor, blend_dfactor);
 	}
 
 	void drawRect(int x, int y, int w, int h, unsigned int color, GLenum blend_sfactor, GLenum blend_dfactor)

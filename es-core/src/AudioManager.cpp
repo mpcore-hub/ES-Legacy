@@ -10,7 +10,7 @@ SDL_AudioSpec AudioManager::sAudioFormat;
 std::shared_ptr<AudioManager> AudioManager::sInstance;
 
 
-void AudioManager::mixAudio(void *unused, Uint8 *stream, int len)
+void AudioManager::mixAudio(void* /*unused*/, Uint8 *stream, int len)
 {
 	bool stillPlaying = false;
 
@@ -125,7 +125,7 @@ void AudioManager::unregisterSound(std::shared_ptr<Sound> & sound)
 		if(sSoundVector.at(i) == sound)
 		{
 			sSoundVector[i]->stop();
-			sSoundVector.erase(sSoundVector.begin() + i);
+			sSoundVector.erase(sSoundVector.cbegin() + i);
 			return;
 		}
 	}

@@ -1,5 +1,6 @@
 #include "components/TextComponent.h"
 
+#include "utils/StringUtil.h"
 #include "Log.h"
 #include "Renderer.h"
 #include "Settings.h"
@@ -106,7 +107,7 @@ void TextComponent::render(const Transform4x4f& parentTrans)
 	if(mTextCache)
 	{
 		const Vector2f& textSize = mTextCache->metrics.size;
-		float yOff;
+		float yOff = 0;
 		switch(mVerticalAlignment)
 		{
 			case ALIGN_TOP:
@@ -197,7 +198,7 @@ void TextComponent::onTextChanged()
 
 		while(text.size() && size.x() + abbrevSize.x() > mSize.x())
 		{
-			size_t newSize = Font::getPrevCursor(text, text.size());
+			size_t newSize = Utils::String::prevCursor(text, text.size());
 			text.erase(newSize, text.size() - newSize);
 			size = f->sizeText(text);
 		}

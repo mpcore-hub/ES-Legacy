@@ -12,14 +12,14 @@ std::string strToUpper(const char* from)
 {
 	std::string str(from);
 	for(unsigned int i = 0; i < str.size(); i++)
-		str[i] = toupper(from[i]);
+		str[i] = (char)toupper(from[i]);
 	return str;
 }
 
 std::string& strToUpper(std::string& str)
 {
 	for(unsigned int i = 0; i < str.size(); i++)
-		str[i] = toupper(str[i]);
+		str[i] = (char)toupper(str[i]);
 
 	return str;
 }
@@ -28,13 +28,6 @@ std::string strToUpper(const std::string& str)
 {
 	return strToUpper(str.c_str());
 }
-
-#if defined(_WIN32) && _MSC_VER < 1800
-float round(float num)
-{
-	return (float)((int)(num + 0.5f));
-}
-#endif
 
 // embedded resources, e.g. ":/font.ttf", need to be properly handled too
 std::string getCanonicalPath(const std::string& path)
@@ -276,7 +269,7 @@ std::string vectorToCommaString(std::vector<std::string> stringVector)
 	std::string out = "";
 	std::sort(stringVector.begin(), stringVector.end());
 	// from a vector of system names get comma separated string
-	for(std::vector<std::string>::iterator it = stringVector.begin() ; it != stringVector.end() ; it++ )
+	for(std::vector<std::string>::const_iterator it = stringVector.cbegin() ; it != stringVector.cend() ; it++ )
 	{
 		out = out + (out == "" ? "" : ",") + (*it);
 	}

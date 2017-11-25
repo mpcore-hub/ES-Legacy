@@ -29,7 +29,7 @@ GuiGamelistOptions::GuiGamelistOptions(Window* window, SystemData* system) : Gui
 		char startChar = '!';
 		char endChar = '_';
 
-		char curChar = toupper(getGamelist()->getCursor()->getName()[0]);
+		char curChar = (char)toupper(getGamelist()->getCursor()->getName()[0]);
 		if(curChar < startChar || curChar > endChar)
 			curChar = startChar;
 
@@ -40,7 +40,7 @@ GuiGamelistOptions::GuiGamelistOptions(Window* window, SystemData* system) : Gui
 			const std::vector<FileData*>& files = getGamelist()->getCursor()->getParent()->getChildrenListToDisplay();
 			for (auto file : files)
 			{
-				char candidate = toupper(file->getName()[0]);
+				char candidate = (char)toupper(file->getName()[0]);
 				if (c == candidate)
 				{
 					mJumpToLetterList->add(std::string(1, c), c, c == curChar);
@@ -85,7 +85,7 @@ GuiGamelistOptions::GuiGamelistOptions(Window* window, SystemData* system) : Gui
 	std::map<std::string, CollectionSystemData> customCollections = CollectionSystemManager::get()->getCustomCollectionSystems();
 
 	if(ViewController::get()->isUIModeFull() &&
-		((customCollections.find(system->getName()) != customCollections.end() && CollectionSystemManager::get()->getEditingCollection() != system->getName()) ||
+		((customCollections.find(system->getName()) != customCollections.cend() && CollectionSystemManager::get()->getEditingCollection() != system->getName()) ||
 		CollectionSystemManager::get()->getCustomCollectionsBundle()->getName() == system->getName()))
 	{
 		row.elements.clear();
@@ -206,7 +206,7 @@ void GuiGamelistOptions::jumpToLetter()
 	const std::vector<FileData*>& files = gamelist->getCursor()->getParent()->getChildrenListToDisplay();
 
 	long min = 0;
-	long max = files.size() - 1;
+	long max = (long)files.size() - 1;
 	long mid = 0;
 
 	while(max >= min)
@@ -217,7 +217,7 @@ void GuiGamelistOptions::jumpToLetter()
 		if(files.at(mid)->getName().empty())
 			continue;
 
-		char checkLetter = toupper(files.at(mid)->getName()[0]);
+		char checkLetter = (char)toupper(files.at(mid)->getName()[0]);
 
 		if(checkLetter < letter)
 			min = mid + 1;

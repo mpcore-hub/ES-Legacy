@@ -60,15 +60,15 @@ void HelpComponent::updateGrid()
 
 	std::shared_ptr<Font>& font = mStyle.font;
 
-	mGrid = std::make_shared<ComponentGrid>(mWindow, Vector2i(mPrompts.size() * 4, 1));
+	mGrid = std::make_shared<ComponentGrid>(mWindow, Vector2i((int)mPrompts.size() * 4, 1));
 	// [icon] [spacer1] [text] [spacer2]
 	
 	std::vector< std::shared_ptr<ImageComponent> > icons;
 	std::vector< std::shared_ptr<TextComponent> > labels;
 
 	float width = 0;
-	const float height = round(font->getLetterHeight() * 1.25f);
-	for(auto it = mPrompts.begin(); it != mPrompts.end(); it++)
+	const float height = Math::round(font->getLetterHeight() * 1.25f);
+	for(auto it = mPrompts.cbegin(); it != mPrompts.cend(); it++)
 	{
 		auto icon = std::make_shared<ImageComponent>(mWindow);
 		icon->setImage(getIconTexture(it->first.c_str()));
@@ -101,11 +101,11 @@ void HelpComponent::updateGrid()
 std::shared_ptr<TextureResource> HelpComponent::getIconTexture(const char* name)
 {
 	auto it = mIconCache.find(name);
-	if(it != mIconCache.end())
+	if(it != mIconCache.cend())
 		return it->second;
 	
 	auto pathLookup = ICON_PATH_MAP.find(name);
-	if(pathLookup == ICON_PATH_MAP.end())
+	if(pathLookup == ICON_PATH_MAP.cend())
 	{
 		LOG(LogError) << "Unknown help icon \"" << name << "\"!";
 		return nullptr;

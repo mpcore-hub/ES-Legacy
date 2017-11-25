@@ -1,6 +1,7 @@
 #include "components/TextEditComponent.h"
 
 #include "resources/Font.h"
+#include "utils/StringUtil.h"
 #include "Renderer.h"
 
 #define TEXT_PADDING_HORIZ 10
@@ -59,13 +60,13 @@ void TextEditComponent::textInput(const char* text)
 		{
 			if(mCursor > 0)
 			{
-				size_t newCursor = Font::getPrevCursor(mText, mCursor);
+				size_t newCursor = Utils::String::prevCursor(mText, mCursor);
 				mText.erase(mText.begin() + newCursor, mText.begin() + mCursor);
-				mCursor = newCursor;
+				mCursor = (unsigned int)newCursor;
 			}
 		}else{
 			mText.insert(mCursor, text);
-			mCursor += strlen(text);
+			mCursor += (unsigned int)strlen(text);
 		}
 	}
 
@@ -190,14 +191,14 @@ void TextEditComponent::updateCursorRepeat(int deltaTime)
 
 void TextEditComponent::moveCursor(int amt)
 {
-	mCursor = Font::moveCursor(mText, mCursor, amt);
+	mCursor = (unsigned int)Utils::String::moveCursor(mText, mCursor, amt);
 	onCursorChanged();
 }
 
 void TextEditComponent::setCursor(size_t pos)
 {
 	if(pos == std::string::npos)
-		mCursor = mText.length();
+		mCursor = (unsigned int)mText.length();
 	else
 		mCursor = (int)pos;
 
@@ -210,7 +211,7 @@ void TextEditComponent::onTextChanged()
 	mTextCache = std::unique_ptr<TextCache>(mFont->buildTextCache(wrappedText, 0, 0, 0x77777700 | getOpacity()));
 
 	if(mCursor > (int)mText.length())
-		mCursor = mText.length();
+		mCursor = (unsigned int)mText.length();
 }
 
 void TextEditComponent::onCursorChanged()
@@ -250,7 +251,7 @@ void TextEditComponent::render(const Transform4x4f& parentTrans)
 
 	Vector2i clipPos((int)trans.translation().x(), (int)trans.translation().y());
 	Vector3f dimScaled = trans * Vector3f(getTextAreaSize().x(), getTextAreaSize().y(), 0); // use "text area" size for clipping
-	Vector2i clipDim((int)dimScaled.x() - trans.translation().x(), (int)dimScaled.y() - trans.translation().y());
+	Vector2i clipDim((int)(dimScaled.x() - trans.translation().x()), (int)(dimScaled.y() - trans.translation().y()));
 	Renderer::pushClipRect(clipPos, clipDim);
 
 	trans.translate(Vector3f(-mScrollOffset.x(), -mScrollOffset.y(), 0));
