@@ -20,7 +20,13 @@ std::vector<const char*> settings_dont_save {
 	{ "ShowExit" },
 	{ "SplashScreen" },
 	{ "VSync" },
-	{ "Windowed" }
+	{ "Windowed" },
+	{ "WindowWidth" },
+	{ "WindowHeight" },
+	{ "ScreenWidth" },
+	{ "ScreenHeight" },
+	{ "ScreenOffsetX" },
+	{ "ScreenOffsetY" }
 };
 
 Settings::Settings()
@@ -127,6 +133,13 @@ void Settings::setDefaults()
 	mBoolMap["ForceKiosk"] = false;
 	mBoolMap["ForceKid"] = false;
 	mBoolMap["hideQuitMenuOnKidUI"] = false;
+
+	mIntMap["WindowWidth"]   = 0;
+	mIntMap["WindowHeight"]  = 0;
+	mIntMap["ScreenWidth"]   = 0;
+	mIntMap["ScreenHeight"]  = 0;
+	mIntMap["ScreenOffsetX"] = 0;
+	mIntMap["ScreenOffsetY"] = 0;
 }
 
 template <typename K, typename V>
@@ -146,6 +159,7 @@ void saveMap(pugi::xml_document& doc, std::map<K, V>& map, const char* type)
 
 void Settings::saveFile()
 {
+	LOG(LogDebug) << "Settings::saveFile() : Saving Settings to file.";
 	const std::string path = getHomePath() + "/.emulationstation/es_settings.cfg";
 
 	pugi::xml_document doc;

@@ -9,6 +9,7 @@
 #include "guis/GuiMsgBox.h"
 #include "guis/GuiScraperStart.h"
 #include "guis/GuiSettings.h"
+#include "views/UIModeController.h"
 #include "views/ViewController.h"
 #include "CollectionSystemManager.h"
 #include "EmulationStation.h"
@@ -16,26 +17,25 @@
 #include "VolumeControl.h"
 #include <SDL_events.h>
 
-GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "ROPI 4.0 MENU"), mVersion(window)
+GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "ROPi 4.1 MENU"), mVersion(window)
 {
-	bool isFullUI = ViewController::get()->isUIModeFull();
+	bool isFullUI = UIModeController::getInstance()->isUIModeFull();
 
         if (isFullUI) addEntry("DESKTOP", 0x777777FF, true, [this] { Window* window = mWindow;
-		window->pushGui(new GuiMsgBox(window, "ARE YOU SURE YOU WANT TO LAUNCH DESKTOP?", "YES", [window] 
-			{ system("startx 2> /dev/null"); }, "NO", nullptr) ); });
+                window->pushGui(new GuiMsgBox(window, "ARE YOU SURE YOU WANT TO LAUNCH DESKTOP?", "YES", [window]
+                        { system("startx 2> /dev/null"); }, "NO", nullptr) ); });
 
-	if (isFullUI) addEntry("OPENELEC", 0x777777FF, true, [this] { Window* window = mWindow;
-		window->pushGui(new GuiMsgBox(window, "ARE YOU SURE YOU WANT TO LAUNCH OPENELEC?", "YES", [window] 
-			{ system("sudo mkimage -C none -A arm -T script -d /boot/boot.kodi.cmd /boot/boot.scr");
+        if (isFullUI) addEntry("OPENELEC", 0x777777FF, true, [this] { Window* window = mWindow;
+                window->pushGui(new GuiMsgBox(window, "ARE YOU SURE YOU WANT TO LAUNCH OPENELEC?", "YES", [window]
+                        { system("sudo mkimage -C none -A arm -T script -d /boot/boot.kodi.cmd /boot/boot.scr");
 
-	if(quitES("/tmp/es-sysrestart") != 0) LOG(LogWarning) << "Restart terminated with non-zero result!"; }, "NO", nullptr) ); });
+        if(quitES("/tmp/es-sysrestart") != 0) LOG(LogWarning) << "Restart terminated with non-zero result!"; }, "NO", nullptr) ); });
 
 	if (isFullUI)
 		addEntry("SCRAPER", 0x777777FF, true, [this] { openScraperSettings(); });
 
         if (isFullUI)
 		addEntry("SOUND SETTINGS", 0x777777FF, true, [this] { openSoundSettings(); });
-
 
 	if (isFullUI)
 		addEntry("UI SETTINGS", 0x777777FF, true, [this] { openUISettings(); });
@@ -49,11 +49,12 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "ROPI 4.0
 	if (isFullUI)
 		addEntry("CONFIGURE INPUT", 0x777777FF, true, [this] { openConfigInput(); });
 
+
         if (isFullUI) addEntry("SLEEP MODE", 0x777777FF, true, [this] { Window* window = mWindow;
                 window->pushGui(new GuiMsgBox(window, "REALLY SLEEP?", "YES", [window]
                         { system("/home/pi/RetrOrangePi/Power_Button/Sleep_mode.sh 2> /dev/null"); }, "NO", nullptr) ); });
 
-	if (!(ViewController::get()->isUIModeKid() && Settings::getInstance()->getBool("hideQuitMenuOnKidUI")))
+	if (!(UIModeController::getInstance()->isUIModeKid() && Settings::getInstance()->getBool("hideQuitMenuOnKidUI")))
 		addEntry("QUIT", 0x777777FF, true, [this] {openQuitMenu(); });
 
 	addChild(&mMenu);
@@ -107,7 +108,7 @@ void GuiMenu::openSoundSettings()
 	s->addWithLabel("SYSTEM VOLUME", volume);
 	s->addSaveFunc([volume] { VolumeControl::getInstance()->setVolume((int)Math::round(volume->getValue())); });
 
-	if (ViewController::get()->isUIModeFull())
+	if (UIModeController::getInstance()->isUIModeFull())
 	{
 #ifdef _RPI_
 		// volume control device
@@ -176,7 +177,7 @@ void GuiMenu::openUISettings()
 
 	//UI mode
 	auto UImodeSelection = std::make_shared< OptionListComponent<std::string> >(mWindow, "UI MODE", false);
-	std::vector<std::string> UImodes = ViewController::get()->getUIModes();
+	std::vector<std::string> UImodes = UIModeController::getInstance()->getUIModes();
 	for (auto it = UImodes.cbegin(); it != UImodes.cend(); it++)
 		UImodeSelection->add(*it, *it, Settings::getInstance()->getString("UIMode") == *it);
 	s->addWithLabel("UI MODE", UImodeSelection);
@@ -189,14 +190,14 @@ void GuiMenu::openUISettings()
 			std::string msg = "You are changing the UI to a restricted mode:\n" + selectedMode + "\n";
 			msg += "This will hide most menu-options to prevent changes to the system.\n";
 			msg += "To unlock and return to the full UI, enter this code: \n";
-			msg += "Up, up, down, down, left, right, left, right, B, A. \n\n";
+			msg += "\"" + UIModeController::getInstance()->getFormattedPassKeyStr() + "\"\n\n";
 			msg += "Do you want to proceed?";
-
-			window->pushGui(new GuiMsgBox(window, msg, "YES",
-				[selectedMode] {
-					LOG(LogDebug) << "Setting UI mode to" << selectedMode;
+			window->pushGui(new GuiMsgBox(window, msg, 
+				"YES", [selectedMode] {
+					LOG(LogDebug) << "Setting UI mode to " << selectedMode;
 					Settings::getInstance()->setString("UIMode", selectedMode);
-			}, "NO", nullptr));
+					Settings::getInstance()->saveFile();
+			}, "NO",nullptr));
 		}
 	});
 
@@ -422,55 +423,59 @@ void GuiMenu::openQuitMenu()
 	Window* window = mWindow;
 
 	ComponentListRow row;
-	row.elements.clear();
-		row.makeAcceptInputHandler([window] {
-			window->pushGui(new GuiMsgBox(window, "REALLY RESTART?", "YES",
-				[] {
-				if(quitES("/tmp/es-restart") != 0)
-					LOG(LogWarning) << "Restart terminated with non-zero result!";
-			}, "NO", nullptr));
-		});
-		row.addElement(std::make_shared<TextComponent>(window, "RESTART EMULATIONSTATION", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
-		s->addRow(row);
-
-	row.elements.clear();
-	row.makeAcceptInputHandler([window] {
-		window->pushGui(new GuiMsgBox(window, "REALLY RESTART?", "YES",
-			[] {
-			if (quitES("/tmp/es-sysrestart") != 0)
-				LOG(LogWarning) << "Restart terminated with non-zero result!";
-		}, "NO", nullptr));
-	});
-	row.addElement(std::make_shared<TextComponent>(window, "RESTART SYSTEM", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
-	s->addRow(row);
-
-	// ROPi changes here: we didn't want kiosk mode with shutting down or quit to terminal permissions
-
-	if (ViewController::get()->isUIModeFull())
+	if (UIModeController::getInstance()->isUIModeFull())
 	{
-	row.elements.clear();
-	row.makeAcceptInputHandler([window] {
-		window->pushGui(new GuiMsgBox(window, "REALLY SHUTDOWN?", "YES",
-			[] {
-			if (quitES("/tmp/es-shutdown") != 0)
-				LOG(LogWarning) << "Shutdown terminated with non-zero result!";
-		}, "NO", nullptr));
-	});
-	row.addElement(std::make_shared<TextComponent>(window, "SHUTDOWN SYSTEM", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
-	s->addRow(row);
+        row.elements.clear();
+        row.makeAcceptInputHandler([window] {
+                window->pushGui(new GuiMsgBox(window, "REALLY QUIT?", "YES",
+                        [] {
+                        SDL_Event ev;
+                        ev.type = SDL_QUIT;
+                        SDL_PushEvent(&ev);
+                }, "NO", nullptr));
+        });
+        row.addElement(std::make_shared<TextComponent>(window, "QUIT EMULATIONSTATION", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+        s->addRow(row);
 
-			row.elements.clear();
-			row.makeAcceptInputHandler([window] {
-				window->pushGui(new GuiMsgBox(window, "REALLY QUIT?", "YES",
-					[] {
-					SDL_Event ev;
-					ev.type = SDL_QUIT;
-					SDL_PushEvent(&ev);
-				}, "NO", nullptr));
-			});
-			row.addElement(std::make_shared<TextComponent>(window, "QUIT EMULATIONSTATION", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
-			s->addRow(row);
+
+                if(Settings::getInstance()->getBool("ShowExit"))
+                {
+
+        row.elements.clear();
+        row.makeAcceptInputHandler([window] {
+                window->pushGui(new GuiMsgBox(window, "REALLY SHUTDOWN?", "YES",
+                        [] {
+                        if (quitES("/tmp/es-shutdown") != 0)
+                                LOG(LogWarning) << "Shutdown terminated with non-zero result!";
+                }, "NO", nullptr));
+        });
+        row.addElement(std::make_shared<TextComponent>(window, "SHUTDOWN SYSTEM", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+        s->addRow(row);
+                }
+
 	}
+        row.elements.clear();
+                row.makeAcceptInputHandler([window] {
+                        window->pushGui(new GuiMsgBox(window, "REALLY RESTART?", "YES",
+                                [] {
+                                if(quitES("/tmp/es-restart") != 0)
+                                        LOG(LogWarning) << "Restart terminated with non-zero result!";
+                        }, "NO", nullptr));
+                });
+                row.addElement(std::make_shared<TextComponent>(window, "RESTART EMULATIONSTATION", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+                s->addRow(row);
+
+        row.elements.clear();
+        row.makeAcceptInputHandler([window] {
+                window->pushGui(new GuiMsgBox(window, "REALLY RESTART?", "YES",
+                        [] {
+                        if (quitES("/tmp/es-sysrestart") != 0)
+                                LOG(LogWarning) << "Restart terminated with non-zero result!";
+                }, "NO", nullptr));
+        });
+        row.addElement(std::make_shared<TextComponent>(window, "RESTART SYSTEM", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+        s->addRow(row);
+
 	mWindow->pushGui(s);
 }
 
@@ -545,3 +550,4 @@ std::vector<HelpPrompt> GuiMenu::getHelpPrompts()
 	prompts.push_back(HelpPrompt("start", "close"));
 	return prompts;
 }
+
