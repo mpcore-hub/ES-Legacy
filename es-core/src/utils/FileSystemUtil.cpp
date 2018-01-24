@@ -350,10 +350,6 @@ namespace Utils
 			if(fileName == ".")
 				return fileName;
 
-			// make a copy of the filename
-			char temp[512];
-			size_t len = snprintf(temp, sizeof(temp), "%s", fileName.c_str());
-
 			// find last '.' and erase the extension
 			if((offset = fileName.find_last_of('.')) != std::string::npos)
 				return fileName.erase(offset);

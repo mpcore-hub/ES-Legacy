@@ -81,6 +81,7 @@ namespace Renderer {
 			box.h = 0;
 
 		clipStack.push(box);
+
 		glScissor(box.x, box.y, box.w, box.h);
 		glEnable(GL_SCISSOR_TEST);
 	}
