@@ -475,7 +475,6 @@ void GuiMenu::openQuitMenu()
         });
         row.addElement(std::make_shared<TextComponent>(window, "RESTART SYSTEM", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
         s->addRow(row);
-
 	mWindow->pushGui(s);
 }
 
@@ -550,4 +549,3 @@ std::vector<HelpPrompt> GuiMenu::getHelpPrompts()
 	prompts.push_back(HelpPrompt("start", "close"));
 	return prompts;
 }
-

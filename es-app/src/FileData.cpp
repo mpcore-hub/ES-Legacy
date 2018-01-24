@@ -1,5 +1,6 @@
 #include "FileData.h"
 
+#include "utils/StringUtil.h"
 #include "utils/TimeUtil.h"
 #include "AudioManager.h"
 #include "CollectionSystemManager.h"
@@ -11,12 +12,9 @@
 #include "Util.h"
 #include "VolumeControl.h"
 #include "Window.h"
-#include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem/operations.hpp>
 
-namespace fs = boost::filesystem;
-
-FileData::FileData(FileType type, const fs::path& path, SystemEnvironmentData* envData, SystemData* system)
+FileData::FileData(FileType type, const boost::filesystem::path& path, SystemEnvironmentData* envData, SystemData* system)
 	: mType(type), mPath(path), mSystem(system), mEnvData(envData), mSourceFileData(NULL), mParent(NULL), metadata(type == GAME ? GAME_METADATA : FOLDER_METADATA) // metadata is REALLY set in the constructor!
 {
 	// metadata needs at least a name field (since that's what getName() will return)
@@ -40,7 +38,7 @@ std::string FileData::getDisplayName() const
 {
 	std::string stem = mPath.stem().generic_string();
 	if(mSystem && mSystem->hasPlatformId(PlatformIds::ARCADE) || mSystem->hasPlatformId(PlatformIds::NEOGEO))
-		stem = PlatformIds::getCleanMameName(stem.c_str());
+		stem = PlatformIds::mameTitleSearch(stem.c_str());
 
 	return stem;
 }
@@ -259,7 +257,7 @@ void FileData::launchGame(Window* window)
 
 	const std::string rom = escapePath(getPath());
 	const std::string basename = getPath().stem().string();
-	const std::string rom_raw = fs::path(getPath()).make_preferred().string();
+	const std::string rom_raw = boost::filesystem::path(getPath()).make_preferred().string();
 
 	command = strreplace(command, "%ROM%", rom);
 	command = strreplace(command, "%BASENAME%", basename);
@@ -327,7 +325,7 @@ const std::string& CollectionFileData::getName()
 {
 	if (mDirty) {
 		mCollectionFileName = removeParenthesis(mSourceFileData->metadata.get("name"));
-		boost::trim(mCollectionFileName);
+		Utils::String::trim(mCollectionFileName);
 		mCollectionFileName += " [" + strToUpper(mSourceFileData->getSystem()->getName()) + "]";
 		mDirty = false;
 	}

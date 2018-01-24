@@ -13,6 +13,7 @@ std::vector<const char*> settings_dont_save {
 	{ "Debug" },
 	{ "DebugGrid" },
 	{ "DebugText" },
+	{ "DebugImage" },
 	{ "ForceKid" },
 	{ "ForceKiosk" },
 	{ "IgnoreGamelist" },
@@ -26,7 +27,8 @@ std::vector<const char*> settings_dont_save {
 	{ "ScreenWidth" },
 	{ "ScreenHeight" },
 	{ "ScreenOffsetX" },
-	{ "ScreenOffsetY" }
+	{ "ScreenOffsetY" },
+	{ "ScreenRotate" }
 };
 
 Settings::Settings()
@@ -140,6 +142,7 @@ void Settings::setDefaults()
 	mIntMap["ScreenHeight"]  = 0;
 	mIntMap["ScreenOffsetX"] = 0;
 	mIntMap["ScreenOffsetY"] = 0;
+	mIntMap["ScreenRotate"]  = 0;
 }
 
 template <typename K, typename V>
