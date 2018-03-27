@@ -3,22 +3,24 @@
 
 #include "guis/GuiDetectDevice.h"
 #include "guis/GuiMsgBox.h"
+#include "utils/FileSystemUtil.h"
 #include "views/ViewController.h"
 #include "CollectionSystemManager.h"
 #include "EmulationStation.h"
 #include "InputManager.h"
 #include "Log.h"
+#include "MameNames.h"
 #include "platform.h"
 #include "PowerSaver.h"
 #include "ScraperCmdLine.h"
 #include "Settings.h"
 #include "SystemData.h"
 #include "SystemScreenSaver.h"
-#include <boost/filesystem/operations.hpp>
 #include <SDL_events.h>
 #include <SDL_main.h>
 #include <SDL_timer.h>
 #include <iostream>
+#include <time.h>
 #ifdef WIN32
 #include <Windows.h>
 #endif
@@ -29,6 +31,8 @@ bool scrape_cmdline = false;
 
 bool parseArgs(int argc, char* argv[])
 {
+	Settings::getInstance()->setString("ExePath", argv[0]);
+
 	for(int i = 1; i < argc; i++)
 	{
 		if(strcmp(argv[i], "--resolution") == 0)
@@ -167,13 +171,13 @@ bool parseArgs(int argc, char* argv[])
 bool verifyHomeFolderExists()
 {
 	//make sure the config directory exists
-	std::string home = getHomePath();
+	std::string home = Utils::FileSystem::getHomePath();
 	std::string configDir = home + "/.emulationstation";
-	if(!boost::filesystem::exists(configDir))
+	if(!Utils::FileSystem::exists(configDir))
 	{
 		std::cout << "Creating config directory \"" << configDir << "\"\n";
-		boost::filesystem::create_directory(configDir);
-		if(!boost::filesystem::exists(configDir))
+		Utils::FileSystem::createDirectory(configDir);
+		if(!Utils::FileSystem::exists(configDir))
 		{
 			std::cerr << "Config directory could not be created!\n";
 			return false;
@@ -220,7 +224,6 @@ int main(int argc, char* argv[])
 	srand((unsigned int)time(NULL));
 
 	std::locale::global(std::locale("C"));
-	boost::filesystem::path::imbue(std::locale());
 
 	if(!parseArgs(argc, argv))
 		return 0;
@@ -280,6 +283,7 @@ int main(int argc, char* argv[])
 	PowerSaver::init();
 	ViewController::init(&window);
 	CollectionSystemManager::init(&window);
+	MameNames::init();
 	window.pushGui(ViewController::get());
 
 	if(!scrape_cmdline)
@@ -335,7 +339,7 @@ int main(int argc, char* argv[])
 	//choose which GUI to open depending on if an input configuration already exists
 	if(errorMsg == NULL)
 	{
-		if(boost::filesystem::exists(InputManager::getConfigPath()) && InputManager::getInstance()->getNumConfiguredDevices() > 0)
+		if(Utils::FileSystem::exists(InputManager::getConfigPath()) && InputManager::getInstance()->getNumConfiguredDevices() > 0)
 		{
 			ViewController::get()->goToStart();
 		}else{
@@ -407,6 +411,7 @@ int main(int argc, char* argv[])
 		delete window.peekGui();
 	window.deinit();
 
+	MameNames::deinit();
 	CollectionSystemManager::deinit();
 	SystemData::deleteSystems();
 
