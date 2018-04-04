@@ -49,7 +49,6 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "ROPi 4.1
 	if (isFullUI)
 		addEntry("CONFIGURE INPUT", 0x777777FF, true, [this] { openConfigInput(); });
 
-
         if (isFullUI) addEntry("SLEEP MODE", 0x777777FF, true, [this] { Window* window = mWindow;
                 window->pushGui(new GuiMsgBox(window, "REALLY SLEEP?", "YES", [window]
                         { system("/home/pi/RetrOrangePi/Power_Button/Sleep_mode.sh 2> /dev/null"); }, "NO", nullptr) ); });
@@ -276,6 +275,7 @@ void GuiMenu::openUISettings()
 			if(needReload)
 			{
 				CollectionSystemManager::get()->updateSystemsList();
+				ViewController::get()->goToStart();
 				ViewController::get()->reloadAll(); // TODO - replace this with some sort of signal-based implementation
 			}
 		});
@@ -288,6 +288,11 @@ void GuiMenu::openUISettings()
 	styles.push_back("basic");
 	styles.push_back("detailed");
 	styles.push_back("video");
+
+	// Temporary "hack" so ES don't crash when leaving this menu after he enabled the grid by tweaking config file
+	if (Settings::getInstance()->getString("GamelistViewStyle") == "grid")
+		styles.push_back("grid");
+
 	for (auto it = styles.cbegin(); it != styles.cend(); it++)
 		gamelist_style->add(*it, *it, Settings::getInstance()->getString("GamelistViewStyle") == *it);
 	s->addWithLabel("GAMELIST VIEW STYLE", gamelist_style);
