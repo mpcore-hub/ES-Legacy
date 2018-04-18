@@ -24,6 +24,7 @@ static const std::map<std::string, const char*> ICON_PATH_MAP {
 	{ "y", ":/help/button_y.svg" },
 	{ "l", ":/help/button_l.svg" },
 	{ "r", ":/help/button_r.svg" },
+	{ "lr", ":/help/button_lr.svg" },
 	{ "start", ":/help/button_start.svg" },
 	{ "select", ":/help/button_select.svg" }
 };
@@ -96,6 +97,7 @@ void HelpComponent::updateGrid()
 
 	mGrid->setPosition(Vector3f(mStyle.position.x(), mStyle.position.y(), 0.0f));
 	//mGrid->setPosition(OFFSET_X, Renderer::getScreenHeight() - mGrid->getSize().y() - OFFSET_Y);
+	mGrid->setOrigin(mStyle.origin);
 }
 
 std::shared_ptr<TextureResource> HelpComponent::getIconTexture(const char* name)
