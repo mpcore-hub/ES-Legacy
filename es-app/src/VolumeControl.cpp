@@ -11,7 +11,7 @@
     #ifdef _RPI_
         const char * VolumeControl::mixerName = "pcm";
     #else
-    	const char * VolumeControl::mixerName = "Lineout volume control";
+    	const char * VolumeControl::mixerName = "hdmi audio format Function";
     #endif
     const char * VolumeControl::mixerCard = "default";
 #endif
@@ -279,12 +279,12 @@ int VolumeControl::getVolume() const
 			}
 			else
 			{
-				LOG(LogError) << "VolumeControl::getVolume() - Failed to get mixer volume!";
+				//LOG(LogError) << "VolumeControl::getVolume() - Failed to get mixer volume!";
 			}
 		}
 		else
 		{
-			LOG(LogError) << "VolumeControl::getVolume() - Failed to get volume range!";
+			//LOG(LogError) << "VolumeControl::getVolume() - Failed to get volume range!";
 		}
 	}
 #elif defined(WIN32) || defined(_WIN32)

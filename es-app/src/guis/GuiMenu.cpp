@@ -17,19 +17,15 @@
 #include "VolumeControl.h"
 #include <SDL_events.h>
 
-GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "ROPi 4.1 MENU"), mVersion(window)
+GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "ROPi 4.2 SLIM"), mVersion(window)
 {
 	bool isFullUI = UIModeController::getInstance()->isUIModeFull();
 
-        if (isFullUI) addEntry("DESKTOP", 0x777777FF, true, [this] { Window* window = mWindow;
-                window->pushGui(new GuiMsgBox(window, "ARE YOU SURE YOU WANT TO LAUNCH DESKTOP?", "YES", [window]
-                        { system("startx 2> /dev/null"); }, "NO", nullptr) ); });
+	if (!(UIModeController::getInstance()->isUIModeKid() && Settings::getInstance()->getBool("hideQuitMenuOnKidUI")))
+		addEntry("QUIT", 0x777777FF, true, [this] {openQuitMenu(); });
 
-        if (isFullUI) addEntry("OPENELEC", 0x777777FF, true, [this] { Window* window = mWindow;
-                window->pushGui(new GuiMsgBox(window, "ARE YOU SURE YOU WANT TO LAUNCH OPENELEC?", "YES", [window]
-                        { system("sudo mkimage -C none -A arm -T script -d /boot/boot.kodi.cmd /boot/boot.scr");
-
-        if(quitES("/tmp/es-sysrestart") != 0) LOG(LogWarning) << "Restart terminated with non-zero result!"; }, "NO", nullptr) ); });
+	if (isFullUI)
+		addEntry("CONFIGURE INPUT", 0x777777FF, true, [this] { openConfigInput(); });
 
 	if (isFullUI)
 		addEntry("SCRAPER", 0x777777FF, true, [this] { openScraperSettings(); });
@@ -45,16 +41,6 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "ROPi 4.1
 
 	if (isFullUI)
 		addEntry("OTHER SETTINGS", 0x777777FF, true, [this] { openOtherSettings(); });
-
-	if (isFullUI)
-		addEntry("CONFIGURE INPUT", 0x777777FF, true, [this] { openConfigInput(); });
-
-        if (isFullUI) addEntry("SLEEP MODE", 0x777777FF, true, [this] { Window* window = mWindow;
-                window->pushGui(new GuiMsgBox(window, "REALLY SLEEP?", "YES", [window]
-                        { system("/home/pi/RetrOrangePi/Power_Button/Sleep_mode.sh 2> /dev/null"); }, "NO", nullptr) ); });
-
-	if (!(UIModeController::getInstance()->isUIModeKid() && Settings::getInstance()->getBool("hideQuitMenuOnKidUI")))
-		addEntry("QUIT", 0x777777FF, true, [this] {openQuitMenu(); });
 
 	addChild(&mMenu);
 	addVersionInfo();
