@@ -369,7 +369,7 @@ void VolumeControl::setVolume(int volume)
 		}
 		else
 		{
-			LOG(LogError) << "VolumeControl::getVolume() - Failed to get volume range!";
+			//LOG(LogError) << "VolumeControl::getVolume() - Failed to get volume range!";
 		}
 	}
 #elif defined(WIN32) || defined(_WIN32)
