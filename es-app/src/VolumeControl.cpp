@@ -11,7 +11,7 @@
     #ifdef _RPI_
         const char * VolumeControl::mixerName = "pcm";
     #else
-    	const char * VolumeControl::mixerName = "Lineout volume control";
+    	const char * VolumeControl::mixerName = "Master";
     #endif
     const char * VolumeControl::mixerCard = "default";
 #endif
@@ -22,7 +22,7 @@ std::weak_ptr<VolumeControl> VolumeControl::sInstance;
 VolumeControl::VolumeControl()
 	: originalVolume(0), internalVolume(0)
 #if defined (__APPLE__)
-	#error TODO: Not implemented for MacOS yet!!!
+    #error TODO: Not implemented for MacOS yet!!!
 #elif defined(__linux__)
 	, mixerIndex(0), mixerHandle(nullptr), mixerElem(nullptr), mixerSelemId(nullptr)
 #elif defined(WIN32) || defined(_WIN32)
@@ -36,9 +36,9 @@ VolumeControl::VolumeControl()
 }
 
 VolumeControl::VolumeControl(const VolumeControl & right):
-	originalVolume(0), internalVolume(0)
+  originalVolume(0), internalVolume(0)
 #if defined (__APPLE__)
-	#error TODO: Not implemented for MacOS yet!!!
+    #error TODO: Not implemented for MacOS yet!!!
 #elif defined(__linux__)
 	, mixerIndex(0), mixerHandle(nullptr), mixerElem(nullptr), mixerSelemId(nullptr)
 #elif defined(WIN32) || defined(_WIN32)
@@ -86,9 +86,9 @@ void VolumeControl::init()
 	//try to open mixer device
 	if (mixerHandle == nullptr)
 	{
-		// Allow users to override the AudioCard and MixerName in es_settings.cfg
-		mixerCard = Settings::getInstance()->getString("AudioCard").c_str();
+		#ifdef _RPI_
 		mixerName = Settings::getInstance()->getString("AudioDevice").c_str();
+		#endif
 
 		snd_mixer_selem_id_alloca(&mixerSelemId);
 		//sets simple-mixer index and name
@@ -119,7 +119,7 @@ void VolumeControl::init()
 						}
 						else
 						{
-							//LOG(LogError) << "VolumeControl::init() - Failed to find mixer elements!";
+							LOG(LogError) << "VolumeControl::init() - Failed to find mixer elements!";
 							snd_mixer_close(mixerHandle);
 							mixerHandle = nullptr;
 						}
@@ -256,7 +256,7 @@ int VolumeControl::getVolume() const
 	int volume = 0;
 
 #if defined (__APPLE__)
-	#error TODO: Not implemented for MacOS yet!!!
+    #error TODO: Not implemented for MacOS yet!!!
 #elif defined(__linux__)
 	if (mixerElem != nullptr)
 	{
@@ -350,7 +350,7 @@ void VolumeControl::setVolume(int volume)
 	//store values in internal variables
 	internalVolume = volume;
 #if defined (__APPLE__)
-	#error TODO: Not implemented for MacOS yet!!!
+    #error TODO: Not implemented for MacOS yet!!!
 #elif defined(__linux__)
 	if (mixerElem != nullptr)
 	{
