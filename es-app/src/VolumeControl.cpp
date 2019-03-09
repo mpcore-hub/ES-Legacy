@@ -11,7 +11,7 @@
     #ifdef _RPI_
         const char * VolumeControl::mixerName = "PCM";
     #else
-    	const char * VolumeControl::mixerName = "hdmi audio format Function";
+    	const char * VolumeControl::mixerName = "Master";
     #endif
     const char * VolumeControl::mixerCard = "default";
 #endif
@@ -87,8 +87,9 @@ void VolumeControl::init()
 	if (mixerHandle == nullptr)
 	{
 		// Allow users to override the AudioCard and MixerName in es_settings.cfg
+		mixerCard = Settings::getInstance()->getString("AudioCard").c_str();
 		mixerName = Settings::getInstance()->getString("AudioDevice").c_str();
-
+		
 		snd_mixer_selem_id_alloca(&mixerSelemId);
 		//sets simple-mixer index and name
 		snd_mixer_selem_id_set_index(mixerSelemId, mixerIndex);
