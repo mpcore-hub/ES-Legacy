@@ -9,7 +9,7 @@
 
 #if defined(__linux__)
     #ifdef _RPI_
-        const char * VolumeControl::mixerName = "PCM";
+        const char * VolumeControl::mixerName = "pcm";
     #else
     	const char * VolumeControl::mixerName = "Master";
     #endif
@@ -89,7 +89,7 @@ void VolumeControl::init()
 		// Allow users to override the AudioCard and MixerName in es_settings.cfg
 		mixerCard = Settings::getInstance()->getString("AudioCard").c_str();
 		mixerName = Settings::getInstance()->getString("AudioDevice").c_str();
-		
+
 		snd_mixer_selem_id_alloca(&mixerSelemId);
 		//sets simple-mixer index and name
 		snd_mixer_selem_id_set_index(mixerSelemId, mixerIndex);
@@ -273,7 +273,7 @@ int VolumeControl::getVolume() const
 				rawVolume -= minVolume;
 				if (rawVolume > 0)
 				{
-					volume = (rawVolume * 100.0) / (maxVolume - minVolume) + 0.5;
+					volume = (rawVolume * 100) / (maxVolume - minVolume);
 				}
 				//else volume = 0;
 			}
@@ -369,7 +369,7 @@ void VolumeControl::setVolume(int volume)
 		}
 		else
 		{
-			LOG(LogError) << "VolumeControl::getVolume() - Failed to get volume range!";
+			//LOG(LogError) << "VolumeControl::getVolume() - Failed to get volume range!";
 		}
 	}
 #elif defined(WIN32) || defined(_WIN32)
