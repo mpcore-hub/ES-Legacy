@@ -27,7 +27,8 @@ private:
 	InputConfig* mCECInputConfig;
 
 	std::map<SDL_JoystickID, int*> mPrevAxisValues;
-
+	std::map<SDL_JoystickID, int*> mInitAxisValues;
+	
 	bool initialized() const;
 
 	void addJoystickByDeviceIndex(int id);
