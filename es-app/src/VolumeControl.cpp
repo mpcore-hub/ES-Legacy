@@ -11,7 +11,7 @@
     #ifdef _RPI_
         const char * VolumeControl::mixerName = "pcm";
     #else
-    	const char * VolumeControl::mixerName = "Master";
+    	const char * VolumeControl::mixerName = "hdmi audio format Function";
     #endif
     const char * VolumeControl::mixerCard = "default";
 #endif
@@ -273,7 +273,7 @@ int VolumeControl::getVolume() const
 				rawVolume -= minVolume;
 				if (rawVolume > 0)
 				{
-					volume = (rawVolume * 100) / (maxVolume - minVolume);
+					volume = (rawVolume * 100.0) / (maxVolume - minVolume) + 0.5;
 				}
 				//else volume = 0;
 			}
