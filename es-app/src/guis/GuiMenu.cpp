@@ -18,22 +18,15 @@
 #include <SDL_events.h>
 #include <algorithm>
 
-GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "ROPi 4.2 FULL"), mVersion(window)
+GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MICROPLAY MENU"), mVersion(window)
 {
 	bool isFullUI = UIModeController::getInstance()->isUIModeFull();
 
 	if (!(UIModeController::getInstance()->isUIModeKid() && Settings::getInstance()->getBool("hideQuitMenuOnKidUI")))
 		addEntry("QUIT", 0x777777FF, true, [this] {openQuitMenu(); });
 
-        if (isFullUI) addEntry("DESKTOP", 0x777777FF, true, [this] { Window* window = mWindow;
-                window->pushGui(new GuiMsgBox(window, "ARE YOU SURE YOU WANT TO LAUNCH DESKTOP?", "YES", [window]
-                        { system("startx 2> /dev/null"); }, "NO", nullptr) ); });
-
 	if (isFullUI)
-		addEntry("CONFIGURE INPUT", 0x777777FF, true, [this] { openConfigInput(); });
-
-	if (isFullUI)
-		addEntry("SCRAPER", 0x777777FF, true, [this] { openScraperSettings(); });
+		addEntry("CONFIGURE CONTROLLERS", 0x777777FF, true, [this] { openConfigInput(); });
 
         if (isFullUI)
 		addEntry("SOUND SETTINGS", 0x777777FF, true, [this] { openSoundSettings(); });
@@ -44,13 +37,13 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "ROPi 4.2
 	if (isFullUI)
 		addEntry("GAME COLLECTION SETTINGS", 0x777777FF, true, [this] { openCollectionSystemSettings(); });
 
-        if (isFullUI) addEntry("SLEEP MODE", 0x777777FF, true, [this] { Window* window = mWindow;
-                window->pushGui(new GuiMsgBox(window, "REALLY SLEEP?", "YES", [window]
-                        { system("/home/pi/RetrOrangePi/Power_Button/Sleep_mode.sh 2> /dev/null"); }, "NO", nullptr) ); });
-
 	if (isFullUI)
 		addEntry("OTHER SETTINGS", 0x777777FF, true, [this] { openOtherSettings(); });
 
+        if (isFullUI) addEntry("DESKTOP MODE", 0x777777FF, true, [this] { Window* window = mWindow;
+                window->pushGui(new GuiMsgBox(window, "AUNCH DESKTOP NOW?", "YES", [window]
+                        { system("startx 2> /dev/null"); }, "NO", nullptr) ); });
+	
 	addChild(&mMenu);
 	addVersionInfo();
 	setSize(mMenu.getSize());
@@ -407,6 +400,11 @@ void GuiMenu::openOtherSettings()
 	s->addWithLabel("PARSE GAMESLISTS ONLY", parse_gamelists);
 	s->addSaveFunc([parse_gamelists] { Settings::getInstance()->setBool("ParseGamelistOnly", parse_gamelists->getState()); });
 
+	auto local_art = std::make_shared<SwitchComponent>(mWindow);
+	local_art->setState(Settings::getInstance()->getBool("LocalArt"));
+	s->addWithLabel("SEARCH FOR LOCAL ART", local_art);
+	s->addSaveFunc([local_art] { Settings::getInstance()->setBool("LocalArt", local_art->getState()); });
+	
 	// hidden files
 	auto hidden_files = std::make_shared<SwitchComponent>(mWindow);
 	hidden_files->setState(Settings::getInstance()->getBool("ShowHiddenFiles"));
@@ -447,7 +445,7 @@ void GuiMenu::openOtherSettings()
 void GuiMenu::openConfigInput()
 {
 	Window* window = mWindow;
-	window->pushGui(new GuiMsgBox(window, "ARE YOU SURE YOU WANT TO CONFIGURE INPUT?", "YES",
+	window->pushGui(new GuiMsgBox(window, "CONFIGURE YOUR CONTROLLERS NOW?", "YES",
 		[window] {
 		window->pushGui(new GuiDetectDevice(window, false, nullptr));
 	}, "NO", nullptr)
@@ -466,14 +464,14 @@ void GuiMenu::openQuitMenu()
 	{
         row.elements.clear();
         row.makeAcceptInputHandler([window] {
-                window->pushGui(new GuiMsgBox(window, "REALLY QUIT?", "YES",
+                window->pushGui(new GuiMsgBox(window, "QUIT TO COMMAND LINE?", "YES",
                         [] {
                         SDL_Event ev;
                         ev.type = SDL_QUIT;
                         SDL_PushEvent(&ev);
                 }, "NO", nullptr));
         });
-        row.addElement(std::make_shared<TextComponent>(window, "QUIT EMULATIONSTATION", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+        row.addElement(std::make_shared<TextComponent>(window, "GO TO COMMAND LINE", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
         s->addRow(row);
 
 
@@ -482,7 +480,7 @@ void GuiMenu::openQuitMenu()
 
         row.elements.clear();
         row.makeAcceptInputHandler([window] {
-                window->pushGui(new GuiMsgBox(window, "REALLY SHUTDOWN?", "YES",
+                window->pushGui(new GuiMsgBox(window, "SHUTDOWN SYSTEM NOW?", "YES",
                         [] {
                         if (quitES("/tmp/es-shutdown") != 0)
                                 LOG(LogWarning) << "Shutdown terminated with non-zero result!";
@@ -495,7 +493,7 @@ void GuiMenu::openQuitMenu()
 	}
         row.elements.clear();
                 row.makeAcceptInputHandler([window] {
-                        window->pushGui(new GuiMsgBox(window, "REALLY RESTART?", "YES",
+                        window->pushGui(new GuiMsgBox(window, "RESTART ES NOW?", "YES",
                                 [] {
                                 if(quitES("/tmp/es-restart") != 0)
                                         LOG(LogWarning) << "Restart terminated with non-zero result!";
@@ -506,7 +504,7 @@ void GuiMenu::openQuitMenu()
 
         row.elements.clear();
         row.makeAcceptInputHandler([window] {
-                window->pushGui(new GuiMsgBox(window, "REALLY RESTART?", "YES",
+                window->pushGui(new GuiMsgBox(window, "RESTART SYSTEM NOW?", "YES",
                         [] {
                         if (quitES("/tmp/es-sysrestart") != 0)
                                 LOG(LogWarning) << "Restart terminated with non-zero result!";
