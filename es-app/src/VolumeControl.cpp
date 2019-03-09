@@ -11,7 +11,7 @@
     #ifdef _RPI_
         const char * VolumeControl::mixerName = "PCM";
     #else
-    	const char * VolumeControl::mixerName = "Master";
+    	const char * VolumeControl::mixerName = "hdmi audio format Function";
     #endif
     const char * VolumeControl::mixerCard = "default";
 #endif
@@ -87,7 +87,6 @@ void VolumeControl::init()
 	if (mixerHandle == nullptr)
 	{
 		// Allow users to override the AudioCard and MixerName in es_settings.cfg
-		mixerCard = Settings::getInstance()->getString("AudioCard").c_str();
 		mixerName = Settings::getInstance()->getString("AudioDevice").c_str();
 
 		snd_mixer_selem_id_alloca(&mixerSelemId);
@@ -279,12 +278,12 @@ int VolumeControl::getVolume() const
 			}
 			else
 			{
-				LOG(LogError) << "VolumeControl::getVolume() - Failed to get mixer volume!";
+				//LOG(LogError) << "VolumeControl::getVolume() - Failed to get mixer volume!";
 			}
 		}
 		else
 		{
-			LOG(LogError) << "VolumeControl::getVolume() - Failed to get volume range!";
+			//LOG(LogError) << "VolumeControl::getVolume() - Failed to get volume range!";
 		}
 	}
 #elif defined(WIN32) || defined(_WIN32)
