@@ -41,7 +41,7 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MICROPLA
 		addEntry("OTHER SETTINGS", 0x777777FF, true, [this] { openOtherSettings(); });
 
         if (isFullUI) addEntry("DESKTOP MODE", 0x777777FF, true, [this] { Window* window = mWindow;
-                window->pushGui(new GuiMsgBox(window, "AUNCH DESKTOP NOW?", "YES", [window]
+                window->pushGui(new GuiMsgBox(window, "LAUNCH DESKTOP NOW?", "YES", [window]
                         { system("startx 2> /dev/null"); }, "NO", nullptr) ); });
 	
 	addChild(&mMenu);
