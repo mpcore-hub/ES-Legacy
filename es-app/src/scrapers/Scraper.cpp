@@ -42,7 +42,7 @@ std::vector<std::string> getScraperList()
 	return list;
 }
 
-ool isValidConfiguredScraper()
+bool isValidConfiguredScraper()
 {
 	const std::string& name = Settings::getInstance()->getString("Scraper");
 	return scraper_request_funcs.find(name) != scraper_request_funcs.end();
