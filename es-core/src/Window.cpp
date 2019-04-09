@@ -7,6 +7,7 @@
 #include "InputManager.h"
 #include "Log.h"
 #include "Renderer.h"
+#include "Scripting.h"
 #include <algorithm>
 #include <iomanip>
 
@@ -274,8 +275,10 @@ void Window::render()
 		if (!isProcessing() && mAllowSleep && (!mScreenSaver || mScreenSaver->allowSleep()))
 		{
 			// go to sleep
-			mSleeping = true;
-			onSleep();
+			if (mSleeping == false) {
+				mSleeping = true;
+				onSleep();
+			}
 		}
 	}
 }
@@ -398,11 +401,12 @@ void Window::setHelpPrompts(const std::vector<HelpPrompt>& prompts, const HelpSt
 
 void Window::onSleep()
 {
+	Scripting::fireEvent("sleep");
 }
 
 void Window::onWake()
 {
-
+	Scripting::fireEvent("wake");
 }
 
 bool Window::isProcessing()
