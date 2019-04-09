@@ -139,10 +139,6 @@ void Window::input(InputConfig* config, Input input)
 					mSleeping = true;
 				}
 			}
-			/*else if(input.value != 0)
-			{
-				return;
-			}*/
 		}
 	}
 
@@ -157,7 +153,8 @@ void Window::input(InputConfig* config, Input input)
 	}
 
 	mTimeSinceLastInput = 0;
-	cancelScreenSaver();
+	if (cancelScreenSaver())
+		return;
 
 	if(config->getDeviceId() == DEVICE_KEYBOARD && input.value && input.id == SDLK_g && SDL_GetModState() & KMOD_LCTRL && Settings::getInstance()->getBool("Debug"))
 	{
@@ -414,34 +411,38 @@ bool Window::isProcessing()
 }
 
 void Window::startScreenSaver()
- {
- 	if (mScreenSaver && !mRenderScreenSaver)
- 	{
- 		// Tell the GUI components the screensaver is starting
- 		for(auto i = mGuiStack.cbegin(); i != mGuiStack.cend(); i++)
- 			(*i)->onScreenSaverActivate();
+{
+	if (mScreenSaver && !mRenderScreenSaver)
+	{
+		// Tell the GUI components the screensaver is starting
+		for(auto i = mGuiStack.cbegin(); i != mGuiStack.cend(); i++)
+			(*i)->onScreenSaverActivate();
 
- 		mScreenSaver->startScreenSaver();
- 		mRenderScreenSaver = true;
- 	}
- }
+		mScreenSaver->startScreenSaver();
+		mRenderScreenSaver = true;
+	}
+}
 
- void Window::cancelScreenSaver()
- {
- 	if (mScreenSaver && mRenderScreenSaver)
- 	{
- 		mScreenSaver->stopScreenSaver();
- 		mRenderScreenSaver = false;
- 		mScreenSaver->resetCounts();
+bool Window::cancelScreenSaver()
+{
+	if (mScreenSaver && mRenderScreenSaver)
+	{
+		mScreenSaver->stopScreenSaver();
+		mRenderScreenSaver = false;
+		mScreenSaver->resetCounts();
 
- 		// Tell the GUI components the screensaver has stopped
- 		for(auto i = mGuiStack.cbegin(); i != mGuiStack.cend(); i++)
- 			(*i)->onScreenSaverDeactivate();
- 	}
- }
+		// Tell the GUI components the screensaver has stopped
+		for(auto i = mGuiStack.cbegin(); i != mGuiStack.cend(); i++)
+			(*i)->onScreenSaverDeactivate();
 
- void Window::renderScreenSaver()
- {
- 	if (mScreenSaver)
- 		mScreenSaver->renderScreenSaver();
- }
+		return true;
+	}
+
+	return false;
+}
+
+void Window::renderScreenSaver()
+{
+	if (mScreenSaver)
+		mScreenSaver->renderScreenSaver();
+}
