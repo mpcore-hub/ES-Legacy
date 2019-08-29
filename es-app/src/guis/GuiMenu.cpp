@@ -468,7 +468,7 @@ void GuiMenu::openQuitMenu()
                 window->pushGui(new GuiMsgBox(window, "QUIT TO COMMAND LINE?", "YES",
                         [] {
 			Scripting::fireEvent("quit");
-			quitES("");
+			quitES();
                 }, "NO", nullptr));
         });
         row.addElement(std::make_shared<TextComponent>(window, "GO TO COMMAND LINE", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
@@ -484,7 +484,7 @@ void GuiMenu::openQuitMenu()
                         [] {
 			Scripting::fireEvent("quit", "shutdown");
 			Scripting::fireEvent("shutdown");
-                        if (quitES("/tmp/es-shutdown") != 0)
+			if (quitES(QuitMode::SHUTDOWN) != 0)
                                 LOG(LogWarning) << "Shutdown terminated with non-zero result!";
                 }, "NO", nullptr));
         });
@@ -498,7 +498,7 @@ void GuiMenu::openQuitMenu()
                         window->pushGui(new GuiMsgBox(window, "RESTART ES NOW?", "YES",
                                 [] {
 				Scripting::fireEvent("quit");
-                                if(quitES("/tmp/es-restart") != 0)
+				if(quitES(QuitMode::RESTART) != 0)
                                         LOG(LogWarning) << "Restart terminated with non-zero result!";
                         }, "NO", nullptr));
                 });
@@ -511,7 +511,7 @@ void GuiMenu::openQuitMenu()
                         [] {
 			Scripting::fireEvent("quit", "reboot");
 			Scripting::fireEvent("reboot");
-                        if (quitES("/tmp/es-sysrestart") != 0)
+			if (quitES(QuitMode::REBOOT) != 0)
                                 LOG(LogWarning) << "Restart terminated with non-zero result!";
                 }, "NO", nullptr));
         });
