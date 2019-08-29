@@ -454,6 +454,8 @@ int main(int argc, char* argv[])
 	FreeImage_DeInitialise();
 #endif
 
+	processQuitMode();
+	
 	LOG(LogInfo) << "EmulationStation cleanly shutting down.";
 
 	return 0;
