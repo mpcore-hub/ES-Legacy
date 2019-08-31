@@ -1,292 +1,312 @@
-#include "components/TextComponent.h"
+#include "components/TextEditComponent.h"
 
+#include "resources/Font.h"
 #include "utils/StringUtil.h"
-#include "Log.h"
-#include "Settings.h"
 
-TextComponent::TextComponent(Window* window) : GuiComponent(window),
-	mFont(Font::get(FONT_SIZE_MEDIUM)), mUppercase(false), mColor(0x000000FF), mAutoCalcExtent(true, true),
-	mHorizontalAlignment(ALIGN_LEFT), mVerticalAlignment(ALIGN_CENTER), mLineSpacing(1.5f), mBgColor(0),
-	mRenderBackground(false)
+#define TEXT_PADDING_HORIZ 10
+#define TEXT_PADDING_VERT 2
+
+#define CURSOR_REPEAT_START_DELAY 500
+#define CURSOR_REPEAT_SPEED 28 // lower is faster
+
+TextEditComponent::TextEditComponent(Window* window) : GuiComponent(window),
+	mBox(window, ":/textinput_ninepatch.png"), mFocused(false),
+	mScrollOffset(0.0f, 0.0f), mCursor(0), mEditing(false), mFont(Font::get(FONT_SIZE_MEDIUM, FONT_PATH_LIGHT)),
+	mCursorRepeatDir(0)
 {
+	addChild(&mBox);
+
+	onFocusLost();
+
+	setSize(4096, mFont->getHeight() + TEXT_PADDING_VERT);
 }
 
-TextComponent::TextComponent(Window* window, const std::string& text, const std::shared_ptr<Font>& font, unsigned int color, Alignment align,
-	Vector3f pos, Vector2f size, unsigned int bgcolor) : GuiComponent(window),
-	mFont(NULL), mUppercase(false), mColor(0x000000FF), mAutoCalcExtent(true, true),
-	mHorizontalAlignment(align), mVerticalAlignment(ALIGN_CENTER), mLineSpacing(1.5f), mBgColor(0),
-	mRenderBackground(false)
+void TextEditComponent::onFocusGained()
 {
-	setFont(font);
-	setColor(color);
-	setBackgroundColor(bgcolor);
-	setText(text);
-	setPosition(pos);
-	setSize(size);
+	mFocused = true;
+	mBox.setImagePath(":/textinput_ninepatch_active.png");
 }
 
-void TextComponent::onSizeChanged()
+void TextEditComponent::onFocusLost()
 {
-	mAutoCalcExtent = Vector2i((getSize().x() == 0), (getSize().y() == 0));
+	mFocused = false;
+	mBox.setImagePath(":/textinput_ninepatch.png");
+}
+
+void TextEditComponent::onSizeChanged()
+{
+	mBox.fitTo(mSize, Vector3f::Zero(), Vector2f(-34, -32 - TEXT_PADDING_VERT));
+	onTextChanged(); // wrap point probably changed
+}
+
+void TextEditComponent::setValue(const std::string& val)
+{
+	mText = val;
 	onTextChanged();
 }
 
-void TextComponent::setFont(const std::shared_ptr<Font>& font)
-{
-	mFont = font;
-	onTextChanged();
-}
-
-//  Set the color of the font/text
-void TextComponent::setColor(unsigned int color)
-{
-	mColor = color;
-	mColorOpacity = mColor & 0x000000FF;
-	onColorChanged();
-}
-
-//  Set the color of the background box
-void TextComponent::setBackgroundColor(unsigned int color)
-{
-	mBgColor = color;
-	mBgColorOpacity = mBgColor & 0x000000FF;
-}
-
-void TextComponent::setRenderBackground(bool render)
-{
-	mRenderBackground = render;
-}
-
-//  Scale the opacity
-void TextComponent::setOpacity(unsigned char opacity)
-{
-	// This method is mostly called to do fading in-out of the Text component element.
-	// Therefore, we assume here that opacity is a fractional value (expressed as an int 0-255),
-	// of the opacity originally set with setColor() or setBackgroundColor().
-
-	unsigned char o = (unsigned char)((float)opacity / 255.f * (float) mColorOpacity);
-	mColor = (mColor & 0xFFFFFF00) | (unsigned char) o;
-
-	unsigned char bgo = (unsigned char)((float)opacity / 255.f * (float)mBgColorOpacity);
-	mBgColor = (mBgColor & 0xFFFFFF00) | (unsigned char)bgo;
-
-	onColorChanged();
-
-	GuiComponent::setOpacity(opacity);
-}
-
-unsigned char TextComponent::getOpacity() const
-{
-	return mColor & 0x000000FF;
-}
-
-void TextComponent::setText(const std::string& text)
-{
-	mText = text;
-	onTextChanged();
-}
-
-void TextComponent::setUppercase(bool uppercase)
-{
-	mUppercase = uppercase;
-	onTextChanged();
-}
-
-void TextComponent::render(const Transform4x4f& parentTrans)
-{
-	if (!isVisible())
-		return;
-
-	Transform4x4f trans = parentTrans * getTransform();
-
-	if (mRenderBackground)
-	{
-		Renderer::setMatrix(trans);
-		Renderer::drawRect(0.f, 0.f, mSize.x(), mSize.y(), mBgColor, mBgColor);
-	}
-
-	if(mTextCache)
-	{
-		const Vector2f& textSize = mTextCache->metrics.size;
-		float yOff = 0;
-		switch(mVerticalAlignment)
-		{
-			case ALIGN_TOP:
-				yOff = 0;
-				break;
-			case ALIGN_BOTTOM:
-				yOff = (getSize().y() - textSize.y());
-				break;
-			case ALIGN_CENTER:
-				yOff = (getSize().y() - textSize.y()) / 2.0f;
-				break;
-		}
-		Vector3f off(0, yOff, 0);
-
-		if(Settings::getInstance()->getBool("DebugText"))
-		{
-			// draw the "textbox" area, what we are aligned within
-			Renderer::setMatrix(trans);
-			Renderer::drawRect(0.f, 0.f, mSize.x(), mSize.y(), 0xFF000033, 0xFF000033);
-		}
-
-		trans.translate(off);
-		trans.round();
-		Renderer::setMatrix(trans);
-
-		// draw the text area, where the text actually is going
-		if(Settings::getInstance()->getBool("DebugText"))
-		{
-			switch(mHorizontalAlignment)
-			{
-			case ALIGN_LEFT:
-				Renderer::drawRect(0.0f, 0.0f, mTextCache->metrics.size.x(), mTextCache->metrics.size.y(), 0x00000033, 0x00000033);
-				break;
-			case ALIGN_CENTER:
-				Renderer::drawRect((mSize.x() - mTextCache->metrics.size.x()) / 2.0f, 0.0f, mTextCache->metrics.size.x(), mTextCache->metrics.size.y(), 0x00000033, 0x00000033);
-				break;
-			case ALIGN_RIGHT:
-				Renderer::drawRect(mSize.x() - mTextCache->metrics.size.x(), 0.0f, mTextCache->metrics.size.x(), mTextCache->metrics.size.y(), 0x00000033, 0x00000033);
-				break;
-			}
-		}
-		mFont->renderTextCache(mTextCache.get());
-	}
-}
-
-void TextComponent::calculateExtent()
-{
-	if(mAutoCalcExtent.x())
-	{
-		mSize = mFont->sizeText(mUppercase ? Utils::String::toUpper(mText) : mText, mLineSpacing);
-	}else{
-		if(mAutoCalcExtent.y())
-		{
-			mSize[1] = mFont->sizeWrappedText(mUppercase ? Utils::String::toUpper(mText) : mText, getSize().x(), mLineSpacing).y();
-		}
-	}
-}
-
-void TextComponent::onTextChanged()
-{
-	calculateExtent();
-
-	if(!mFont || mText.empty())
-	{
-		mTextCache.reset();
-		return;
-	}
-
-	std::string text = mUppercase ? Utils::String::toUpper(mText) : mText;
-
-	std::shared_ptr<Font> f = mFont;
-	const bool isMultiline = (mSize.y() == 0 || mSize.y() > f->getHeight()*1.2f);
-
-	bool addAbbrev = false;
-	if(!isMultiline)
-	{
-		size_t newline = text.find('\n');
-		text = text.substr(0, newline); // single line of text - stop at the first newline since it'll mess everything up
-		addAbbrev = newline != std::string::npos;
-	}
-
-	Vector2f size = f->sizeText(text);
-	if(!isMultiline && mSize.x() && text.size() && (size.x() > mSize.x() || addAbbrev))
-	{
-		// abbreviate text
-		const std::string abbrev = "...";
-		Vector2f abbrevSize = f->sizeText(abbrev);
-
-		while(text.size() && size.x() + abbrevSize.x() > mSize.x())
-		{
-			size_t newSize = Utils::String::prevCursor(text, text.size());
-			text.erase(newSize, text.size() - newSize);
-			size = f->sizeText(text);
-		}
-
-		text.append(abbrev);
-
-		mTextCache = std::shared_ptr<TextCache>(f->buildTextCache(text, Vector2f(0, 0), (mColor >> 8 << 8) | mOpacity, mSize.x(), mHorizontalAlignment, mLineSpacing));
-	}else{
-		mTextCache = std::shared_ptr<TextCache>(f->buildTextCache(f->wrapText(text, mSize.x()), Vector2f(0, 0), (mColor >> 8 << 8) | mOpacity, mSize.x(), mHorizontalAlignment, mLineSpacing));
-	}
-}
-
-void TextComponent::onColorChanged()
-{
-	if(mTextCache)
-	{
-		mTextCache->setColor(mColor);
-	}
-}
-
-void TextComponent::setHorizontalAlignment(Alignment align)
-{
-	mHorizontalAlignment = align;
-	onTextChanged();
-}
-
-void TextComponent::setVerticalAlignment(Alignment align)
-{
-	mVerticalAlignment = align;
-}
-
-void TextComponent::setLineSpacing(float spacing)
-{
-	mLineSpacing = spacing;
-	onTextChanged();
-}
-
-void TextComponent::setValue(const std::string& value)
-{
-	setText(value);
-}
-
-std::string TextComponent::getValue() const
+std::string TextEditComponent::getValue() const
 {
 	return mText;
 }
 
-void TextComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties)
+void TextEditComponent::textInput(const char* text)
 {
-	GuiComponent::applyTheme(theme, view, element, properties);
+	if(mEditing)
+	{
+		mCursorRepeatDir = 0;
+		if(text[0] == '\b')
+		{
+			if(mCursor > 0)
+			{
+				size_t newCursor = Utils::String::prevCursor(mText, mCursor);
+				mText.erase(mText.begin() + newCursor, mText.begin() + mCursor);
+				mCursor = (unsigned int)newCursor;
+			}
+		}else{
+			mText.insert(mCursor, text);
+			mCursor += (unsigned int)strlen(text);
+		}
+	}
 
-	using namespace ThemeFlags;
+	onTextChanged();
+	onCursorChanged();
+}
 
-	const ThemeData::ThemeElement* elem = theme->getElement(view, element, "text");
-	if(!elem)
+void TextEditComponent::startEditing()
+{
+	SDL_StartTextInput();
+	mEditing = true;
+	updateHelpPrompts();
+}
+
+void TextEditComponent::stopEditing()
+{
+	SDL_StopTextInput();
+	mEditing = false;
+	updateHelpPrompts();
+}
+
+bool TextEditComponent::input(InputConfig* config, Input input)
+{
+	bool const cursor_left = (config->getDeviceId() != DEVICE_KEYBOARD && config->isMappedLike("left", input)) ||
+		(config->getDeviceId() == DEVICE_KEYBOARD && input.id == SDLK_LEFT);
+	bool const cursor_right = (config->getDeviceId() != DEVICE_KEYBOARD && config->isMappedLike("right", input)) ||
+		(config->getDeviceId() == DEVICE_KEYBOARD && input.id == SDLK_RIGHT);
+
+	if(input.value == 0)
+	{
+		if(cursor_left || cursor_right)
+			mCursorRepeatDir = 0;
+
+		return false;
+	}
+
+	if((config->isMappedTo("a", input) || (config->getDeviceId() == DEVICE_KEYBOARD && input.id == SDLK_RETURN)) && mFocused && !mEditing)
+	{
+		startEditing();
+		return true;
+	}
+
+	if(mEditing)
+	{
+		if(config->getDeviceId() == DEVICE_KEYBOARD && input.id == SDLK_RETURN)
+		{
+			if(isMultiline())
+			{
+				textInput("\n");
+			}else{
+				stopEditing();
+			}
+
+			return true;
+		}
+
+		if((config->getDeviceId() == DEVICE_KEYBOARD && input.id == SDLK_ESCAPE) || (config->getDeviceId() != DEVICE_KEYBOARD && config->isMappedTo("b", input)))
+		{
+			stopEditing();
+			return true;
+		}
+
+		if(config->getDeviceId() != DEVICE_KEYBOARD && config->isMappedLike("up", input))
+		{
+			// TODO
+		}else if(config->getDeviceId() != DEVICE_KEYBOARD && config->isMappedLike("down", input))
+		{
+			// TODO
+		}else if(cursor_left || cursor_right)
+		{
+			mCursorRepeatDir = cursor_left ? -1 : 1;
+			mCursorRepeatTimer = -(CURSOR_REPEAT_START_DELAY - CURSOR_REPEAT_SPEED);
+			moveCursor(mCursorRepeatDir);
+		} else if(config->getDeviceId() == DEVICE_KEYBOARD)
+		{
+			switch(input.id)
+			{
+				case SDLK_HOME:
+					setCursor(0);
+					break;
+
+				case SDLK_END:
+					setCursor(std::string::npos);
+					break;
+
+				case SDLK_DELETE:
+					if(mCursor < mText.length())
+					{
+						// Fake as Backspace one char to the right
+						moveCursor(1);
+						textInput("\b");
+					}
+					break;
+			}
+		}
+
+		//consume all input when editing text
+		return true;
+	}
+
+	return false;
+}
+
+void TextEditComponent::update(int deltaTime)
+{
+	updateCursorRepeat(deltaTime);
+	GuiComponent::update(deltaTime);
+}
+
+void TextEditComponent::updateCursorRepeat(int deltaTime)
+{
+	if(mCursorRepeatDir == 0)
 		return;
 
-	if (properties & COLOR && elem->has("color"))
-		setColor(elem->get<unsigned int>("color"));
-
-	setRenderBackground(false);
-	if (properties & COLOR && elem->has("backgroundColor")) {
-		setBackgroundColor(elem->get<unsigned int>("backgroundColor"));
-		setRenderBackground(true);
-	}
-
-	if(properties & ALIGNMENT && elem->has("alignment"))
+	mCursorRepeatTimer += deltaTime;
+	while(mCursorRepeatTimer >= CURSOR_REPEAT_SPEED)
 	{
-		std::string str = elem->get<std::string>("alignment");
-		if(str == "left")
-			setHorizontalAlignment(ALIGN_LEFT);
-		else if(str == "center")
-			setHorizontalAlignment(ALIGN_CENTER);
-		else if(str == "right")
-			setHorizontalAlignment(ALIGN_RIGHT);
-		else
-			LOG(LogError) << "Unknown text alignment string: " << str;
+		moveCursor(mCursorRepeatDir);
+		mCursorRepeatTimer -= CURSOR_REPEAT_SPEED;
+	}
+}
+
+void TextEditComponent::moveCursor(int amt)
+{
+	mCursor = (unsigned int)Utils::String::moveCursor(mText, mCursor, amt);
+	onCursorChanged();
+}
+
+void TextEditComponent::setCursor(size_t pos)
+{
+	if(pos == std::string::npos)
+		mCursor = (unsigned int)mText.length();
+	else
+		mCursor = (int)pos;
+
+	moveCursor(0);
+}
+
+void TextEditComponent::onTextChanged()
+{
+	std::string wrappedText = (isMultiline() ? mFont->wrapText(mText, getTextAreaSize().x()) : mText);
+	mTextCache = std::unique_ptr<TextCache>(mFont->buildTextCache(wrappedText, 0, 0, 0x77777700 | getOpacity()));
+
+	if(mCursor > (int)mText.length())
+		mCursor = (unsigned int)mText.length();
+}
+
+void TextEditComponent::onCursorChanged()
+{
+	if(isMultiline())
+	{
+		Vector2f textSize = mFont->getWrappedTextCursorOffset(mText, getTextAreaSize().x(), mCursor);
+
+		if(mScrollOffset.y() + getTextAreaSize().y() < textSize.y() + mFont->getHeight()) //need to scroll down?
+		{
+			mScrollOffset[1] = textSize.y() - getTextAreaSize().y() + mFont->getHeight();
+		}else if(mScrollOffset.y() > textSize.y()) //need to scroll up?
+		{
+			mScrollOffset[1] = textSize.y();
+		}
+	}else{
+		Vector2f cursorPos = mFont->sizeText(mText.substr(0, mCursor));
+
+		if(mScrollOffset.x() + getTextAreaSize().x() < cursorPos.x())
+		{
+			mScrollOffset[0] = cursorPos.x() - getTextAreaSize().x();
+		}else if(mScrollOffset.x() > cursorPos.x())
+		{
+			mScrollOffset[0] = cursorPos.x();
+		}
+	}
+}
+
+void TextEditComponent::render(const Transform4x4f& parentTrans)
+{
+	Transform4x4f trans = getTransform() * parentTrans;
+	renderChildren(trans);
+
+	// text + cursor rendering
+	// offset into our "text area" (padding)
+	trans.translation() += Vector3f(getTextAreaPos().x(), getTextAreaPos().y(), 0);
+
+	Vector2i clipPos((int)trans.translation().x(), (int)trans.translation().y());
+	Vector3f dimScaled = trans * Vector3f(getTextAreaSize().x(), getTextAreaSize().y(), 0); // use "text area" size for clipping
+	Vector2i clipDim((int)(dimScaled.x() - trans.translation().x()), (int)(dimScaled.y() - trans.translation().y()));
+	Renderer::pushClipRect(clipPos, clipDim);
+
+	trans.translate(Vector3f(-mScrollOffset.x(), -mScrollOffset.y(), 0));
+	trans.round();
+
+	Renderer::setMatrix(trans);
+
+	if(mTextCache)
+	{
+		mFont->renderTextCache(mTextCache.get());
 	}
 
-	if(properties & TEXT && elem->has("text"))
-		setText(elem->get<std::string>("text"));
+	// pop the clip early to allow the cursor to be drawn outside of the "text area"
+	Renderer::popClipRect();
 
-	if(properties & FORCE_UPPERCASE && elem->has("forceUppercase"))
-		setUppercase(elem->get<bool>("forceUppercase"));
+	// draw cursor
+	if(mEditing)
+	{
+		Vector2f cursorPos;
+		if(isMultiline())
+		{
+			cursorPos = mFont->getWrappedTextCursorOffset(mText, getTextAreaSize().x(), mCursor);
+		}else{
+			cursorPos = mFont->sizeText(mText.substr(0, mCursor));
+			cursorPos[1] = 0;
+		}
 
-	if(properties & LINE_SPACING && elem->has("lineSpacing"))
-		setLineSpacing(elem->get<float>("lineSpacing"));
+		float cursorHeight = mFont->getHeight() * 0.8f;
+		Renderer::drawRect(cursorPos.x(), cursorPos.y() + (mFont->getHeight() - cursorHeight) / 2, 2.0f, cursorHeight, 0x000000FF, 0x000000FF);
+	}
+}
 
-	setFont(Font::getFromTheme(elem, properties, mFont));
+bool TextEditComponent::isMultiline()
+{
+	return (getSize().y() > mFont->getHeight() * 1.25f);
+}
+
+Vector2f TextEditComponent::getTextAreaPos() const
+{
+	return Vector2f(TEXT_PADDING_HORIZ / 2.0f, TEXT_PADDING_VERT / 2.0f);
+}
+
+Vector2f TextEditComponent::getTextAreaSize() const
+{
+	return Vector2f(mSize.x() - TEXT_PADDING_HORIZ, mSize.y() - TEXT_PADDING_VERT);
+}
+
+std::vector<HelpPrompt> TextEditComponent::getHelpPrompts()
+{
+	std::vector<HelpPrompt> prompts;
+	if(mEditing)
+	{
+		prompts.push_back(HelpPrompt("up/down/left/right", "move cursor"));
+		prompts.push_back(HelpPrompt("b", "stop editing"));
+	}else{
+		prompts.push_back(HelpPrompt("a", "edit"));
+	}
+	return prompts;
 }
