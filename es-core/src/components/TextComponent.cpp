@@ -4,7 +4,7 @@
 #include "Log.h"
 #include "Settings.h"
 
-TextComponent::TextComponent(Window* window) : GuiComponent(window), 
+TextComponent::TextComponent(Window* window) : GuiComponent(window),
 	mFont(Font::get(FONT_SIZE_MEDIUM)), mUppercase(false), mColor(0x000000FF), mAutoCalcExtent(true, true),
 	mHorizontalAlignment(ALIGN_LEFT), mVerticalAlignment(ALIGN_CENTER), mLineSpacing(1.5f), mBgColor(0),
 	mRenderBackground(false)
@@ -12,7 +12,7 @@ TextComponent::TextComponent(Window* window) : GuiComponent(window),
 }
 
 TextComponent::TextComponent(Window* window, const std::string& text, const std::shared_ptr<Font>& font, unsigned int color, Alignment align,
-	Vector3f pos, Vector2f size, unsigned int bgcolor) : GuiComponent(window), 
+	Vector3f pos, Vector2f size, unsigned int bgcolor) : GuiComponent(window),
 	mFont(NULL), mUppercase(false), mColor(0x000000FF), mAutoCalcExtent(true, true),
 	mHorizontalAlignment(align), mVerticalAlignment(ALIGN_CENTER), mLineSpacing(1.5f), mBgColor(0),
 	mRenderBackground(false)
@@ -102,7 +102,7 @@ void TextComponent::render(const Transform4x4f& parentTrans)
 	if (mRenderBackground)
 	{
 		Renderer::setMatrix(trans);
-		Renderer::drawRect(0.f, 0.f, mSize.x(), mSize.y(), mBgColor);
+		Renderer::drawRect(0.f, 0.f, mSize.x(), mSize.y(), mBgColor, mBgColor);
 	}
 
 	if(mTextCache)
@@ -127,7 +127,7 @@ void TextComponent::render(const Transform4x4f& parentTrans)
 		{
 			// draw the "textbox" area, what we are aligned within
 			Renderer::setMatrix(trans);
-			Renderer::drawRect(0.f, 0.f, mSize.x(), mSize.y(), 0xFF000033);
+			Renderer::drawRect(0.f, 0.f, mSize.x(), mSize.y(), 0xFF000033, 0xFF000033);
 		}
 
 		trans.translate(off);
@@ -140,13 +140,13 @@ void TextComponent::render(const Transform4x4f& parentTrans)
 			switch(mHorizontalAlignment)
 			{
 			case ALIGN_LEFT:
-				Renderer::drawRect(0.0f, 0.0f, mTextCache->metrics.size.x(), mTextCache->metrics.size.y(), 0x00000033);
+				Renderer::drawRect(0.0f, 0.0f, mTextCache->metrics.size.x(), mTextCache->metrics.size.y(), 0x00000033, 0x00000033);
 				break;
 			case ALIGN_CENTER:
-				Renderer::drawRect((mSize.x() - mTextCache->metrics.size.x()) / 2.0f, 0.0f, mTextCache->metrics.size.x(), mTextCache->metrics.size.y(), 0x00000033);
+				Renderer::drawRect((mSize.x() - mTextCache->metrics.size.x()) / 2.0f, 0.0f, mTextCache->metrics.size.x(), mTextCache->metrics.size.y(), 0x00000033, 0x00000033);
 				break;
 			case ALIGN_RIGHT:
-				Renderer::drawRect(mSize.x() - mTextCache->metrics.size.x(), 0.0f, mTextCache->metrics.size.x(), mTextCache->metrics.size.y(), 0x00000033);
+				Renderer::drawRect(mSize.x() - mTextCache->metrics.size.x(), 0.0f, mTextCache->metrics.size.x(), mTextCache->metrics.size.y(), 0x00000033, 0x00000033);
 				break;
 			}
 		}
@@ -258,7 +258,7 @@ void TextComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const st
 		return;
 
 	if (properties & COLOR && elem->has("color"))
-		setColor(elem->get<unsigned int>("color"));	
+		setColor(elem->get<unsigned int>("color"));
 
 	setRenderBackground(false);
 	if (properties & COLOR && elem->has("backgroundColor")) {
