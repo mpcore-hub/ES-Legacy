@@ -2,8 +2,8 @@
 #ifndef ES_APP_COMPONENTS_RATING_COMPONENT_H
 #define ES_APP_COMPONENTS_RATING_COMPONENT_H
 
+#include "renderers/Renderer.h"
 #include "GuiComponent.h"
-
 
 class TextureResource;
 
