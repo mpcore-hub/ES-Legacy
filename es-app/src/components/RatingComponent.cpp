@@ -108,7 +108,7 @@ void RatingComponent::render(const Transform4x4f& parentTrans)
 {
 	if (!isVisible())
 		return;
-	
+
 	Transform4x4f trans = parentTrans * getTransform();
 	Renderer::setMatrix(trans);
 
