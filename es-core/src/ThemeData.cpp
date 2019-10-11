@@ -19,7 +19,7 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "size", NORMALIZED_PAIR },
 		{ "maxSize", NORMALIZED_PAIR },
 		{ "origin", NORMALIZED_PAIR },
- 		{ "rotation", FLOAT },
+		{ "rotation", FLOAT },
 		{ "rotationOrigin", NORMALIZED_PAIR },
 		{ "path", PATH },
 		{ "default", PATH },
@@ -42,6 +42,7 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "scrollDirection", STRING },
 		{ "centerSelection", BOOLEAN },
 		{ "scrollLoop", BOOLEAN },
+		{ "animate", BOOLEAN },
 		{ "zIndex", FLOAT } } },
 	{ "gridtile", {
 		{ "size", NORMALIZED_PAIR },
