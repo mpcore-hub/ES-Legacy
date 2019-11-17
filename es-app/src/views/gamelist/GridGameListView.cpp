@@ -130,7 +130,7 @@ void GridGameListView::populateList(const std::vector<FileData*>& files)
 	{
 		for (auto it = files.cbegin(); it != files.cend(); it++)
 		{
- 			mGrid.add((*it)->getName(), getImagePath(*it), *it);
+			mGrid.add((*it)->getName(), getImagePath(*it), *it);
 		}
 	}
 	else
@@ -178,6 +178,8 @@ void GridGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& theme)
 	mDescContainer.applyTheme(theme, getName(), "md_description", POSITION | ThemeFlags::SIZE | Z_INDEX | VISIBLE);
 	mDescription.setSize(mDescContainer.getSize().x(), 0);
 	mDescription.applyTheme(theme, getName(), "md_description", ALL ^ (POSITION | ThemeFlags::SIZE | ThemeFlags::ORIGIN | TEXT | ROTATION));
+
+	populateList(mRoot->getChildrenListToDisplay());
 
 	sortChildren();
 }
