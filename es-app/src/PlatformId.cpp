@@ -7,91 +7,91 @@ namespace PlatformIds
 	const char* PlatformNames[PLATFORM_COUNT + 1] = {
 		"unknown", // nothing set
 
-		THREEDO, // name can't start with a constant
-		AMIGA,
-		AMSTRAD_CPC,
-		APPLE_II,
-		ARCADE,
-		ATARI_800,
-		ATARI_2600,
-		ATARI_5200,
-		ATARI_7800,
-		ATARI_LYNX,
-		ATARI_ST, // Atari ST/STE/Falcon
-		ATARI_JAGUAR,
-		ATARI_JAGUAR_CD,
-		ATARI_XE,
-		BBC_MICRO,
-		COLECOVISION,
-		COMMODORE_64,
-		DAPHNE,
-		INTELLIVISION,
-		MAC_OS,
-		XBOX,
-		XBOX_360,
-		MSX,
-		NEOGEO,
-		NEOGEO_CD,
-		NEOGEO_POCKET,
-		NEOGEO_POCKET_COLOR,
-		NINTENDO_3DS,
-		NINTENDO_64,
-		NINTENDO_DS,
-		FAMICOM_DISK_SYSTEM,
-		NINTENDO_ENTERTAINMENT_SYSTEM,
-		NINTENDO_POKEMON_MINI,
-		FAIRCHILD_CHANNELF,
-		GAME_BOY,
-		GAME_BOY_ADVANCE,
-		GAME_BOY_COLOR,
-		NINTENDO_GAMECUBE,
-		NINTENDO_WII,
-		NINTENDO_WII_U,
-		NINTENDO_VIRTUAL_BOY,
-		NINTENDO_GAME_AND_WATCH,
-		NINTENDO_SWITCH,
-		OPENBOR,
-		PC,
-		SEGA_32X,
-		SEGA_CD,
-		SEGA_DREAMCAST,
-		SEGA_GAME_GEAR,
-		SEGA_GENESIS,
-		SEGA_MASTER_SYSTEM,
-		SEGA_MEGA_DRIVE,
-		SEGA_SATURN,
-		SEGA_SG1000,
-		SAM_COUPE,
-		PLAYSTATION,
-		PLAYSTATION_2,
-		PLAYSTATION_3,
-		PLAYSTATION_4,
-		PLAYSTATION_VITA,
-		PLAYSTATION_PORTABLE,
-		SUPER_NINTENDO,
-		SCUMMVM,
-		SHARP_X1,
-		SHARP_X6800,
-		SOLARUS,
-		PICO_8,
-		TIC_80,
-		THOMSON_MOTO,
-		NEC_PC_8801,
-		NEC_PC_9801,
-		TURBOGRAFX_16, // (aka PC Engine) HuCards only
-		TURBOGRAFX_CD, // (aka PC Engine) CD-ROMs only
-		NEC_PCFX,
-		WONDERSWAN,
-		WONDERSWAN_COLOR,
-		ZX_SPECTRUM,
-		ZX81_SINCLAR,
-		VIDEOPAC_ODYSSEY2,
-		VECTREX,
-		TRS80_COLOR_COMPUTER,
-		TANDY,
-		TI_99,
-		DRAGON32,
-		ZMACHINE,
+		"3do",
+		"amiga",
+		"amstradcpc",
+		"apple2",
+		"arcade",
+		"atari800",
+		"atari2600",
+		"atari5200",
+		"atari7800",
+		"atarilynx",
+		"atarist",
+		"atarijaguar",
+		"atarijaguarcd",
+		"atarixe",
+		"bbcmicro",
+		"colecovision",
+		"c64", // commodore 64
+		"daphne",
+		"intellivision",
+		"macintosh",
+		"xbox",
+		"xbox360",
+		"msx",
+		"neogeo",
+		"neogeocd",
+		"ngp", // neo geo pocket
+		"ngpc", // neo geo pocket color
+		"n3ds", // nintendo 3DS
+		"n64", // nintendo 64
+		"nds", // nintendo DS
+		"fds", // Famicom Disk System
+		"nes", // nintendo entertainment system
+		"pokemini",
+		"channelf", // Fairchild ChannelF
+		"gb", // game boy
+		"gba", // game boy advance
+		"gbc", // game boy color
+		"gc", // gamecube
+		"wii",
+		"wiiu",
+		"virtualboy",
+		"gameandwatch",
+		"switch", // Nintendo Switch
+		"openbor",
+		"pc",
+		"sega32x",
+		"segacd",
+		"dreamcast",
+		"gamegear",
+		"genesis", // sega genesis
+		"mastersystem", // sega master system
+		"megadrive", // sega megadrive
+		"saturn", // sega saturn
+		"sg-1000",
+		"samcoupe",
+		"psx",
+		"ps2",
+		"ps3",
+		"ps4",
+		"psvita",
+		"psp", // playstation portable
+		"snes", // super nintendo entertainment system
+		"scummvm",
+		"x1",
+		"x68000",
+		"solarus",
+		"pico8",
+		"tic80",
+		"moto", // Thomson MO/TO
+		"pc88", // NEC PC-8801
+		"pc98", // NEC PC-9801
+		"pcengine", // (aka turbografx-16) HuCards only
+		"pcenginecd", // (aka turbografx-16) CD-ROMs only
+		"pcfx",
+		"wonderswan",
+		"wonderswancolor",
+		"zxspectrum",
+		"zx81",
+		"videopac",
+		"vectrex",
+		"trs-80",
+		"coco",
+		"ti99",
+		"dragon32",
+		"zmachine",
 
 		"ignore", // do not allow scraping for this system
 		"invalid"
