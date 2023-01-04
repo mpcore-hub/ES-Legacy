@@ -12,9 +12,6 @@ class GridGameListView : public ISimpleGameListView
 {
 public:
 	GridGameListView(Window* window, FileData* root);
-	virtual ~GridGameListView();
-
-	virtual void onShow() override;
 
 	virtual void onThemeChanged(const std::shared_ptr<ThemeData>& theme) override;
 
@@ -29,7 +26,6 @@ public:
 	virtual void launch(FileData* game) override;
 
 protected:
-	virtual void update(int deltaTime) override;
 	virtual std::string getQuickSystemSelectRightButton() override;
 	virtual std::string getQuickSystemSelectLeftButton() override;
 	virtual void populateList(const std::vector<FileData*>& files) override;
