@@ -10,6 +10,7 @@
 GridGameListView::GridGameListView(Window* window, FileData* root) :
 	ISimpleGameListView(window, root),
 	mGrid(window),
+	mVideo(nullptr),
 	mDescContainer(window), mDescription(window),
 
 	mLblRating(window), mLblReleaseDate(window), mLblDeveloper(window), mLblPublisher(window),
