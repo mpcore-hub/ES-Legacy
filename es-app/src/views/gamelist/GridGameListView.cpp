@@ -398,12 +398,6 @@ std::vector<HelpPrompt> GridGameListView::getHelpPrompts()
 	return prompts;
 }
 
-void GridGameListView::update(int deltaTime)
-{
-	ISimpleGameListView::update(deltaTime);
-	mVideo->update(deltaTime);
-}
-
 void GridGameListView::onShow()
 {
 	GuiComponent::onShow();
