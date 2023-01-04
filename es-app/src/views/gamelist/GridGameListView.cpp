@@ -10,7 +10,6 @@
 GridGameListView::GridGameListView(Window* window, FileData* root) :
 	ISimpleGameListView(window, root),
 	mGrid(window),
-	mVideo(nullptr),
 	mDescContainer(window), mDescription(window),
 
 	mLblRating(window), mLblReleaseDate(window), mLblDeveloper(window), mLblPublisher(window),
@@ -79,10 +78,6 @@ GridGameListView::GridGameListView(Window* window, FileData* root) :
 	updateInfoPanel();
 }
 
-GridGameListView::~GridGameListView()
-{
-	delete mVideo;
-}
 
 FileData* GridGameListView::getCursor()
 {
