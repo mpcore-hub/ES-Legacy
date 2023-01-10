@@ -49,6 +49,7 @@ bool TextureData::initSVGFromMemory(const unsigned char* fileData, size_t length
 	if (!svgImage)
 	{
 		LOG(LogError) << "Error parsing SVG image.";
+		nsvgDelete(svgImage);
 		return false;
 	}
 
@@ -78,6 +79,7 @@ bool TextureData::initSVGFromMemory(const unsigned char* fileData, size_t length
 	NSVGrasterizer* rast = nsvgCreateRasterizer();
 	nsvgRasterize(rast, svgImage, 0, 0, mHeight / svgImage->height, dataRGBA, (int)mWidth, (int)mHeight, (int)mWidth * 4);
 	nsvgDeleteRasterizer(rast);
+	nsvgDelete(svgImage);
 
 	ImageIO::flipPixelsVert(dataRGBA, mWidth, mHeight);
 
