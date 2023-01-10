@@ -10,7 +10,6 @@
 #include "Settings.h"
 #include "ThemeData.h"
 #include "views/UIModeController.h"
-
 #include <fstream>
 #include "utils/StringUtil.h"
 #include "utils/ThreadPool.h"
@@ -254,7 +253,6 @@ SystemData* SystemData::loadSystem(pugi::xml_node system)
 	return newSys;
 }
 
-
 //creates systems from information located in a config file
 bool SystemData::loadConfig(Window* window)
 {
@@ -263,7 +261,7 @@ bool SystemData::loadConfig(Window* window)
 	std::string path = getConfigPath(false);
 
 	LOG(LogInfo) << "Loading system config file " << path << "...";
-
+	
 	if (!Utils::FileSystem::exists(path))
 	{
 		LOG(LogError) << "es_systems.cfg file does not exist!";
@@ -289,7 +287,7 @@ bool SystemData::loadConfig(Window* window)
 		LOG(LogError) << "es_systems.cfg is missing the <systemList> tag!";
 		return false;
 	}
-
+	
 	std::vector<std::string> systemsNames;
 
 	int systemCount = 0;
@@ -301,11 +299,12 @@ bool SystemData::loadConfig(Window* window)
 
 	int currentSystem = 0;
 
+		// convert extensions list from a string into a vector of strings
 	typedef SystemData* SystemDataPtr;
-	
+
 	ThreadPool* pThreadPool = NULL;
 	SystemDataPtr* systems = NULL;
-	
+
 	if (std::thread::hardware_concurrency() > 2 && Settings::getInstance()->getBool("ThreadedLoading"))
 	{
 		pThreadPool = new ThreadPool();
@@ -318,7 +317,7 @@ bool SystemData::loadConfig(Window* window)
 	}
 
 	int processedSystem = 0;
-	
+
 	for (pugi::xml_node system = systemList.child("system"); system; system = system.next_sibling("system"))
 	{
 		if (pThreadPool != NULL)
@@ -332,9 +331,9 @@ bool SystemData::loadConfig(Window* window)
 		else
 		{
 			std::string fullname = system.child("fullname").text().get();
-
-		//convert path to generic directory seperators
-		path = Utils::FileSystem::getGenericPath(path);
+			
+			if (window != NULL)
+				window->renderLoadingScreen(fullname, systemCount == 0 ? 0 : (float)currentSystem / (float)(systemCount + 1));
 
 			std::string nm = system.child("name").text().get();
 
