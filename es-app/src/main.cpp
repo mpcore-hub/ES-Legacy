@@ -367,6 +367,8 @@ int main(int argc, char* argv[])
 	if(splashScreen && splashScreenProgress)
 		window.renderLoadingScreen("Done.");
 	
+	InputManager::getInstance()->init();
+	
 	//choose which GUI to open depending on if an input configuration already exists
 	if(errorMsg == NULL)
 	{
@@ -440,6 +442,8 @@ int main(int argc, char* argv[])
 
 	while(window.peekGui() != ViewController::get())
 		delete window.peekGui();
+
+	InputManager::getInstance()->deinit();
 	window.deinit();
 
 	MameNames::deinit();
