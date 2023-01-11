@@ -181,10 +181,10 @@ SystemData* SystemData::loadSystem(pugi::xml_node system)
 	std::vector<std::string> list = readList(system.child("extension").text().get());
 	std::vector<std::string> extensions;
 
-	for(auto extension = list.cbegin(); extension != list.cend(); extension++)
+	for (auto extension = list.cbegin(); extension != list.cend(); extension++)
 	{
 		std::string xt = Utils::String::toLower(*extension);
-		if(std::find(extensions.begin(), extensions.end(), xt) == extensions.end())
+		if (std::find(extensions.begin(), extensions.end(), xt) == extensions.end())
 			extensions.push_back(xt);
 	}
 
@@ -194,12 +194,12 @@ SystemData* SystemData::loadSystem(pugi::xml_node system)
 	const char* platformList = system.child("platform").text().get();
 	std::vector<std::string> platformStrs = readList(platformList);
 	std::vector<PlatformIds::PlatformId> platformIds;
-	for(auto it = platformStrs.cbegin(); it != platformStrs.cend(); it++)
+	for (auto it = platformStrs.cbegin(); it != platformStrs.cend(); it++)
 	{
 		const char* str = it->c_str();
 		PlatformIds::PlatformId platformId = PlatformIds::getPlatformId(str);
 
-		if(platformId == PlatformIds::PLATFORM_IGNORE)
+		if (platformId == PlatformIds::PLATFORM_IGNORE)
 		{
 			// when platform is ignore, do not allow other platforms
 			platformIds.clear();
@@ -208,9 +208,9 @@ SystemData* SystemData::loadSystem(pugi::xml_node system)
 		}
 
 		// if there appears to be an actual platform ID supplied but it didn't match the list, warn
-		if(str != NULL && str[0] != '\0' && platformId == PlatformIds::PLATFORM_UNKNOWN)
+		if (str != NULL && str[0] != '\0' && platformId == PlatformIds::PLATFORM_UNKNOWN)
 			LOG(LogWarning) << "  Unknown platform for system \"" << name << "\" (platform \"" << str << "\" from list \"" << platformList << "\")";
-		else if(platformId != PlatformIds::PLATFORM_UNKNOWN)
+		else if (platformId != PlatformIds::PLATFORM_UNKNOWN)
 			platformIds.push_back(platformId);
 	}
 
@@ -218,7 +218,7 @@ SystemData* SystemData::loadSystem(pugi::xml_node system)
 	themeFolder = system.child("theme").text().as_string(name.c_str());
 
 	//validate
-	if(name.empty() || path.empty() || extensions.empty() || cmd.empty())
+	if (name.empty() || path.empty() || extensions.empty() || cmd.empty())
 	{
 		LOG(LogError) << "System \"" << name << "\" is missing name, path, extension, or command!";
 		return nullptr;
@@ -228,7 +228,7 @@ SystemData* SystemData::loadSystem(pugi::xml_node system)
 	path = Utils::FileSystem::getGenericPath(path);
 
 	//expand home symbol if the startpath contains ~
-	if(path[0] == '~')
+	if (path[0] == '~')
 	{
 		path.erase(0, 1);
 		path.insert(0, Utils::FileSystem::getHomePath());
@@ -242,7 +242,7 @@ SystemData* SystemData::loadSystem(pugi::xml_node system)
 	envData->mPlatformIds = platformIds;
 
 	SystemData* newSys = new SystemData(name, fullname, envData, themeFolder);
-	if(newSys->getRootFolder()->getChildren().size() == 0)
+	if (newSys->getRootFolder()->getChildren().size() == 0)
 	{
 		LOG(LogWarning) << "System \"" << name << "\" has no games! Ignoring it.";
 		delete newSys;
@@ -262,7 +262,7 @@ bool SystemData::loadConfig(Window* window)
 
 	LOG(LogInfo) << "Loading system config file " << path << "...";
 	
-	if(!Utils::FileSystem::exists(path))
+	if (!Utils::FileSystem::exists(path))
 	{
 		LOG(LogError) << "es_systems.cfg file does not exist!";
 		writeExampleConfig(getConfigPath(true));
@@ -291,7 +291,7 @@ bool SystemData::loadConfig(Window* window)
 	std::vector<std::string> systemsNames;
 
 	int systemCount = 0;
-	for(pugi::xml_node system = systemList.child("system"); system; system = system.next_sibling("system"))
+	for (pugi::xml_node system = systemList.child("system"); system; system = system.next_sibling("system"))
 	{
 		systemsNames.push_back(system.child("fullname").text().get());
 		systemCount++;
@@ -305,12 +305,12 @@ bool SystemData::loadConfig(Window* window)
 	ThreadPool* pThreadPool = NULL;
 	SystemDataPtr* systems = NULL;
 
-	if(std::thread::hardware_concurrency() > 2 && Settings::getInstance()->getBool("ThreadedLoading"))
+	if (std::thread::hardware_concurrency() > 2 && Settings::getInstance()->getBool("ThreadedLoading"))
 	{
 		pThreadPool = new ThreadPool();
 
 		systems = new SystemDataPtr[systemCount];
-		for(int i = 0; i < systemCount; i++)
+		for (int i = 0; i < systemCount; i++)
 			systems[i] = nullptr;
 
 		pThreadPool->queueWorkItem([] { CollectionSystemManager::get()->loadCollectionSystems(true); });
@@ -318,9 +318,9 @@ bool SystemData::loadConfig(Window* window)
 
 	int processedSystem = 0;
 
-	for(pugi::xml_node system = systemList.child("system"); system; system = system.next_sibling("system"))
+	for (pugi::xml_node system = systemList.child("system"); system; system = system.next_sibling("system"))
 	{
-		if(pThreadPool != NULL)
+		if (pThreadPool != NULL)
 		{
 			pThreadPool->queueWorkItem([system, currentSystem, systems, &processedSystem]
 			{
@@ -332,51 +332,51 @@ bool SystemData::loadConfig(Window* window)
 		{
 			std::string fullname = system.child("fullname").text().get();
 			
-			if(window != NULL)
+			if (window != NULL)
 				window->renderLoadingScreen(fullname, systemCount == 0 ? 0 : (float)currentSystem / (float)(systemCount + 1));
 
 			std::string nm = system.child("name").text().get();
 
 			SystemData* pSystem = loadSystem(system);
-			if(pSystem != nullptr)
+			if (pSystem != nullptr)
 				sSystemVector.push_back(pSystem);
 		}
 
 		currentSystem++;
 	}
 
-	if(pThreadPool != NULL)
+	if (pThreadPool != NULL)
 	{
-		if(window != NULL)
+		if (window != NULL)
 		{
 			pThreadPool->wait([window, &processedSystem, systemCount, &systemsNames]
 			{
 				int px = processedSystem - 1;
-				if(px >= 0 && px < systemsNames.size())
+				if (px >= 0 && px < systemsNames.size())
 					window->renderLoadingScreen(systemsNames.at(px), (float)px / (float)(systemCount + 1));
 			}, 10);
 		}
 		else
 			pThreadPool->wait();
 
-		for(int i = 0; i < systemCount; i++)
+		for (int i = 0; i < systemCount; i++)
 		{
 			SystemData* pSystem = systems[i];
-			if(pSystem != nullptr)
+			if (pSystem != nullptr)
 				sSystemVector.push_back(pSystem);
 		}
 
 		delete[] systems;
 		delete pThreadPool;
 
-		if(window != NULL)
+		if (window != NULL)
 			window->renderLoadingScreen("Favorites", systemCount == 0 ? 0 : currentSystem / systemCount);
 
 		CollectionSystemManager::get()->updateSystemsList();
 	}
 	else
 	{
-		if(window != NULL)
+		if (window != NULL)
 			window->renderLoadingScreen("Favorites", systemCount == 0 ? 0 : currentSystem / systemCount);
 
 		CollectionSystemManager::get()->loadCollectionSystems();
@@ -451,7 +451,7 @@ std::string SystemData::getConfigPath(bool forWrite)
 
 bool SystemData::isVisible()
 {
-   return(getDisplayedGameCount() > 0 ||
+   return (getDisplayedGameCount() > 0 ||
            (UIModeController::getInstance()->isUIModeFull() && mIsCollectionSystem) ||
            (mIsCollectionSystem && mName == "favorites"));
 }
@@ -462,9 +462,9 @@ SystemData* SystemData::getNext() const
 
 	do {
 		it++;
-		if(it == sSystemVector.cend())
+		if (it == sSystemVector.cend())
 			it = sSystemVector.cbegin();
-	} while(!(*it)->isVisible());
+	} while (!(*it)->isVisible());
 	// as we are starting in a valid gamelistview, this will always succeed, even if we have to come full circle.
 
 	return *it;
@@ -476,9 +476,9 @@ SystemData* SystemData::getPrev() const
 
 	do {
 		it++;
-		if(it == sSystemVector.crend())
+		if (it == sSystemVector.crend())
 			it = sSystemVector.crbegin();
-	} while(!(*it)->isVisible());
+	} while (!(*it)->isVisible());
 	// as we are starting in a valid gamelistview, this will always succeed, even if we have to come full circle.
 
 	return *it;
@@ -516,7 +516,7 @@ std::string SystemData::getThemePath() const
 	// not in game folder, try system theme in theme sets
 	localThemePath = ThemeData::getThemeFromCurrentSet(mThemeFolder);
 
-	if(Utils::FileSystem::exists(localThemePath))
+	if (Utils::FileSystem::exists(localThemePath))
 		return localThemePath;
 
 	// not system theme, try default system theme in theme set
@@ -527,12 +527,12 @@ std::string SystemData::getThemePath() const
 
 bool SystemData::hasGamelist() const
 {
-	return(Utils::FileSystem::exists(getGamelistPath(false)));
+	return (Utils::FileSystem::exists(getGamelistPath(false)));
 }
 
 unsigned int SystemData::getGameCount() const
 {
-	return(unsigned int)mRootFolder->getFilesRecursive(GAME).size();
+	return (unsigned int)mRootFolder->getFilesRecursive(GAME).size();
 }
 
 SystemData* SystemData::getRandomSystem()
@@ -541,7 +541,7 @@ SystemData* SystemData::getRandomSystem()
 	unsigned int total = 0;
 	for(auto it = sSystemVector.cbegin(); it != sSystemVector.cend(); it++)
 	{
-		if((*it)->isGameSystem())
+		if ((*it)->isGameSystem())
 			total ++;
 	}
 
@@ -549,9 +549,9 @@ SystemData* SystemData::getRandomSystem()
 	int target = (int)Math::round((std::rand() / (float)RAND_MAX) * (total - 1));
 	for (auto it = sSystemVector.cbegin(); it != sSystemVector.cend(); it++)
 	{
-		if((*it)->isGameSystem())
+		if ((*it)->isGameSystem())
 		{
-			if(target > 0)
+			if (target > 0)
 			{
 				target--;
 			}
@@ -572,7 +572,7 @@ FileData* SystemData::getRandomGame()
 	unsigned int total = (int)list.size();
 	int target = 0;
 	// get random number in range
-	if(total == 0)
+	if (total == 0)
 		return NULL;
 	target = (int)Math::round((std::rand() / (float)RAND_MAX) * (total - 1));
 	return list.at(target);
