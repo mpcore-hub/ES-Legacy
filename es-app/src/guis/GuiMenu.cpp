@@ -394,6 +394,12 @@ void GuiMenu::openUISettings()
 	s->addWithLabel("ON-SCREEN HELP", show_help);
 	s->addSaveFunc([show_help] { Settings::getInstance()->setBool("ShowHelpPrompts", show_help->getState()); });
 
+	// hide start menu in Kid Mode
+	auto disable_start = std::make_shared<SwitchComponent>(mWindow);
+	disable_start->setState(Settings::getInstance()->getBool("DisableKidStartMenu"));
+	s->addWithLabel("DISABLE START MENU IN KID MODE", disable_start);
+	s->addSaveFunc([disable_start] { Settings::getInstance()->setBool("DisableKidStartMenu", disable_start->getState()); });
+	
 	mWindow->pushGui(s);
 
 }
