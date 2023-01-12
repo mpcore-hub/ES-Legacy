@@ -156,6 +156,11 @@ void Settings::setDefaults()
 	mIntMap["ScreenRotate"]  = 0;
 	
 	mBoolMap["UseFullscreenPaging"] = false;
+
+	mBoolMap["IgnoreLeadingArticles"] = false;
+	//No spaces!  Order is important!
+	//"The A Squad" given [a,an,the] will sort as "A Squad", but given [the,a,an] will sort as "Squad"
+	mStringMap["LeadingArticles"] = "a,an,the";
 }
 
 template <typename K, typename V>
