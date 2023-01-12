@@ -154,6 +154,8 @@ void Settings::setDefaults()
 	mIntMap["ScreenOffsetX"] = 0;
 	mIntMap["ScreenOffsetY"] = 0;
 	mIntMap["ScreenRotate"]  = 0;
+	
+	mBoolMap["UseFullscreenPaging"] = false;
 }
 
 template <typename K, typename V>
