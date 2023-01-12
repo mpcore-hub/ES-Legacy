@@ -63,6 +63,7 @@ void Settings::setDefaults()
 	mBoolMap["SplashScreen"] = true;
 	mBoolMap["SplashScreenProgress"] = true;
 	mStringMap["StartupSystem"] = "";
+	mBoolMap["DisableKidStartMenu"] = true;
 
 	mBoolMap["VSync"] = true;
 
