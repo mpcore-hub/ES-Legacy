@@ -3,7 +3,6 @@
 #include "utils/FileSystemUtil.h"
 #include "platform.h"
 #include <iostream>
-#include <iomanip>
 
 LogLevel Log::reportingLevel = LogInfo;
 FILE* Log::file = NULL; //fopen(getLogPath().c_str(), "w");
@@ -39,8 +38,7 @@ void Log::open()
 
 std::ostringstream& Log::get(LogLevel level)
 {
-	time_t t = time(nullptr);
-	os << std::put_time(localtime(&t), "%b %d %T ") << "lvl" << level << ": \t";
+	os << "lvl" << level << ": \t";
 	messageLevel = level;
 
 	return os;
